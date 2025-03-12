@@ -1,13 +1,24 @@
+using Microsoft.EntityFrameworkCore;
+using WordSnapWeb.Models;
+
 namespace WordSnapWeb
 {
     public class Program
     {
         public static void Main(string[] args)
         {
+            var directory = Path.Combine(Directory.GetCurrentDirectory(), "bin/Debug/net9.0");
+            var configuration = new ConfigurationBuilder()
+                        .SetBasePath(directory)
+                        .AddJsonFile("appsettings.json")
+                        .Build();
+            var connectionString = configuration.GetConnectionString("DatabaseConnection");
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+            builder.Services.AddDbContext<WordSnapDbContext>(options => options.UseNpgsql(connectionString));
+            builder.Services.AddScoped<IWordSnapRepository, WordSnapRepository>();
 
             var app = builder.Build();
 

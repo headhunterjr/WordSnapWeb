@@ -25,10 +25,6 @@ public partial class WordSnapDbContext : DbContext
 
     public virtual DbSet<Userscardset> Userscardsets { get; set; }
 
-    IConfigurationRoot? configuration = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json").Build();
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseNpgsql(configuration.GetConnectionString("DatabaseConnection"));
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Card>(entity =>

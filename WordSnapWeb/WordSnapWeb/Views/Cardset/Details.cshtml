@@ -1,0 +1,42 @@
+﻿@model WordSnapWeb.Models.Cardset
+
+@{
+    ViewData["Title"] = "Cardset Details";
+}
+
+<h1>@Model.Name</h1>
+
+<h2>Cards</h2>
+@if (Model.Cards != null && Model.Cards.Any())
+{
+    <ul>
+        @foreach (var card in Model.Cards)
+        {
+            <li>
+                <strong>@card.WordUa</strong> - @card.WordEn
+            </li>
+        }
+    </ul>
+}
+else
+{
+    <p>No cards added yet.</p>
+}
+
+<h2>Додати нову картку</h2>
+
+<form asp-action="CreateCard" asp-route-cardsetId="@Model.Id" method="post">
+    <div class="form-group">
+        <label for="WordUa">Слово українською</label>
+        <input type="text" class="form-control" id="WordUa" name="WordUa" placeholder="Введіть слово українською" />
+    </div>
+    <div class="form-group">
+        <label for="WordEn">Слово англійською</label>
+        <input type="text" class="form-control" id="WordEn" name="WordEn" placeholder="Введіть слово англійською" />
+    </div>
+    <div class="form-group">
+        <label for="Comment">Коментар</label>
+        <input type="text" class="form-control" id="Comment" name="Comment" placeholder="Введіть опис слова" />
+    </div>
+    <button type="submit" class="btn btn-primary">Додати картку</button>
+</form>
