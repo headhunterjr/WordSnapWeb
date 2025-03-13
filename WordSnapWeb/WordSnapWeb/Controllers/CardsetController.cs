@@ -32,6 +32,31 @@ namespace WordSnapWeb.Controllers
             return RedirectToAction("Details", new { cardsetId });
         }
 
+        [HttpPost("EditCardset")]
+        public async Task<IActionResult> EditCardset(Cardset updatedCardset)
+        {
+            var cardset = await _repository.GetCardsetByIdAsync(updatedCardset.Id);
+            if (cardset == null)
+            {
+                return NotFound();
+            }
+
+            cardset.Name = updatedCardset.Name;
+            cardset.IsPublic = updatedCardset.IsPublic;
+
+            await _repository.UpdateCardsetAsync(cardset);
+
+            return RedirectToAction("Details", new { cardsetId = cardset.Id });
+        }
+
+        [HttpPost("DeleteCardset")]
+        public async Task<IActionResult> DeleteCardset(int cardsetId)
+        {
+            await _repository.DeleteCardsetAsync(cardsetId);
+            return RedirectToAction("Index", "Home");
+        }
+
+
         public IActionResult Index()
         {
             return View();

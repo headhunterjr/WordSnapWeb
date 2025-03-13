@@ -6,17 +6,47 @@
 
 <h1>@Model.Name</h1>
 
-<h2>Cards</h2>
+<h2>Редагувати інформацію набору</h2>
+<form asp-action="EditCardset" method="post">
+    <input type="hidden" asp-for="Id" />
+
+    <div class="form-group">
+        <label asp-for="Name">Назва набору</label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label>Публічний доступ</label>
+        <div>
+            <label class="mr-3">
+                <input type="radio" name="IsPublic" value="true" @(Model.IsPublic == true ? "checked" : "") /> Так
+            </label>
+            <label>
+                <input type="radio" name="IsPublic" value="false" @(Model.IsPublic == false ? "checked" : "") /> Ні
+            </label>
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Зберегти зміни</button>
+</form>
+
+<form asp-action="DeleteCardset" method="post" class="mt-2" onsubmit="return confirm('Ви впевнені, що хочете видалити цей набір?');">
+    <input type="hidden" name="cardsetId" value="@Model.Id" />
+    <button type="submit" class="btn btn-danger">Видалити набір</button>
+</form>
+
+<h2>Картки</h2>
 @if (Model.Cards != null && Model.Cards.Any())
 {
     <ul>
         @foreach (var card in Model.Cards)
         {
             <li>
-                <strong>@card.WordUa</strong> - @card.WordEn
+                <strong>@card.WordUa</strong> - @card.WordEn  <a asp-controller="Card" asp-action="EditCard" asp-route-cardId="@card.Id" class="btn btn-sm btn-outline-primary">Редагувати</a>
                 @if (!String.IsNullOrEmpty(card.Comment))
                 {
-                    <br />@card.Comment
+                    <br /><small class="text-muted">@card.Comment</small>
                 }
             </li>
         }

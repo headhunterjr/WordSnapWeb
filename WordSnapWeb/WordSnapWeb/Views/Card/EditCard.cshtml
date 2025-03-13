@@ -1,0 +1,38 @@
+﻿@model WordSnapWeb.Models.Card
+@{
+    ViewData["Title"] = "Edit Card";
+}
+
+<h1>Редагувати картку</h1>
+
+<form asp-action="EditCard" asp-route-cardId="@Model.Id" method="post">
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="CardsetRef" />
+
+    <div class="form-group">
+        <label asp-for="WordUa">Слово українською</label>
+        <input asp-for="WordUa" class="form-control" />
+        <span asp-validation-for="WordUa" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="WordEn">Слово англійською</label>
+        <input asp-for="WordEn" class="form-control" />
+        <span asp-validation-for="WordEn" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Comment">Коментар</label>
+        <input asp-for="Comment" class="form-control" />
+        <span asp-validation-for="Comment" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mt-3">
+        <button type="submit" class="btn btn-primary">Зберегти зміни</button>
+        <a asp-controller="Cardset" asp-action="Details" asp-route-cardsetId="@Model.CardsetRef" class="btn btn-secondary">Скасувати</a>
+    </div>
+</form>
+
+<form asp-controller="Card" asp-action="DeleteCard" asp-route-cardId="@Model.Id" method="post" class="mt-3" onsubmit="return confirm('Ви впевнені, що хочете видалити цю картку?');">
+    <button type="submit" class="btn btn-danger">Видалити картку</button>
+</form>

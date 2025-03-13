@@ -40,7 +40,7 @@ public class HomeController : Controller
         {
             UserRef = 82,
             Name = "Без назви",
-            IsPublic = false,
+            IsPublic = true,
             CreatedAt = DateTime.Now,
         };
         await _repository.AddCardsetAsync(cardset);
