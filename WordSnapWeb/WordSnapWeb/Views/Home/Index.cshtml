@@ -5,4 +5,17 @@
 <div class="text-center">
     <h1 class="display-4">Welcome</h1>
     <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    <form asp-action="SearchCardset" method="get">
+        <div class="form-group">
+            <label for="searchQuery">Пошук наборів</label>
+            <input type="text" class="form-control" id="searchQuery" name="searchQuery" placeholder="Введіть назву набору" />
+        </div>
+        <button type="submit" class="btn btn-primary">Шукати</button>
+    </form>
+
 </div>
+
+<h2>Створити новий набір карток</h2>
+<form asp-action="CreateCardset" method="post">
+    <button type="submit" class="btn btn-success">Створити набір</button>
+</form>

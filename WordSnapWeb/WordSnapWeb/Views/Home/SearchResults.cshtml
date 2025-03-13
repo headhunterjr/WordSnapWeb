@@ -1,0 +1,25 @@
+﻿@model IEnumerable<WordSnapWeb.Models.Cardset>
+
+@{
+    ViewData["Title"] = "Результати пошуку";
+}
+
+<h1>Результати пошуку</h1>
+
+@if (Model != null && Model.Any())
+{
+    <ul>
+        @foreach (var cardset in Model)
+        {
+            <li>
+                <a asp-controller="Cardset" asp-action="Details" asp-route-cardsetId="@cardset.Id">
+                    @cardset.Name
+                </a>
+            </li>
+        }
+    </ul>
+}
+else
+{
+    <p>Нічого не знайдено.</p>
+}

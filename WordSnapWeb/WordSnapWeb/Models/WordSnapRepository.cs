@@ -83,5 +83,23 @@ namespace WordSnapWeb.Models
             var cardset = await _context.Cardsets.Include(cs => cs.Cards).FirstOrDefaultAsync(cs => cs.Id == id);
             return cardset ?? throw new InvalidOperationException("Набір карток не знайдено");
         }
+
+        public async Task<int> DeleteCardFromCardset(int cardId)
+        {
+            var card = await _context.Cards.FirstOrDefaultAsync(c => c.Id == cardId);
+            if (card == null)
+            {
+                throw new InvalidOperationException("Картку не знайдено.");
+            }
+
+            _context.Cards.Remove(card);
+            return await _context.SaveChangesAsync();
+        }
+
+        public async Task<Card?> GetCardAsync(int cardId)
+        {
+            var card = await _context.Cards.FirstOrDefaultAsync(c => c.Id == cardId);
+            return card;
+        }
     }
 }

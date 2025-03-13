@@ -14,6 +14,10 @@
         {
             <li>
                 <strong>@card.WordUa</strong> - @card.WordEn
+                @if (!String.IsNullOrEmpty(card.Comment))
+                {
+                    <br />@card.Comment
+                }
             </li>
         }
     </ul>

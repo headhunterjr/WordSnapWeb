@@ -25,18 +25,26 @@ public class HomeController : Controller
         return View();
     }
 
+    [HttpGet]
+    public async Task<IActionResult> SearchCardset(string searchQuery)
+    {
+        var cardsets = await _repository.GetCardsetsFromSearchAsync(searchQuery);
+        return View("SearchResults", cardsets);
+    }
+
+
     [HttpPost]
     public async Task<IActionResult> CreateCardset()
     {
         Cardset cardset = new Cardset()
         {
-            UserRef = 0,
+            UserRef = 82,
             Name = "Без назви",
             IsPublic = false,
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = DateTime.Now,
         };
         await _repository.AddCardsetAsync(cardset);
-        return Ok();
+        return RedirectToAction("Details", "Cardset", new { cardsetId = cardset.Id });
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
