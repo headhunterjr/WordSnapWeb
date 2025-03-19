@@ -31,34 +31,51 @@
     <button type="submit" class="btn btn-primary">Зберегти зміни</button>
 </form>
 
-<form asp-action="DeleteCardset" method="post" class="mt-2" onsubmit="return confirm('Ви впевнені, що хочете видалити цей набір?');">
-    <input type="hidden" name="cardsetId" value="@Model.Id" />
-    <button type="submit" class="btn btn-danger">Видалити набір</button>
-</form>
+<!-- Delete Cardset Button Aligned Right -->
+<div class="d-flex justify-content-end mt-3">
+    <form asp-action="DeleteCardset" method="post" onsubmit="return confirm('Ви впевнені, що хочете видалити цей набір?');">
+        <input type="hidden" name="cardsetId" value="@Model.Id" />
+        <button type="submit" class="btn btn-danger">Видалити набір</button>
+    </form>
+</div>
+
+<hr class="my-4" />
 
 <h2>Картки</h2>
 @if (Model.Cards != null && Model.Cards.Any())
 {
-    <ul>
-        @foreach (var card in Model.Cards)
-        {
-            <li>
-                <strong>@card.WordUa</strong> - @card.WordEn  <a asp-controller="Card" asp-action="EditCard" asp-route-cardId="@card.Id" class="btn btn-sm btn-outline-primary">Редагувати</a>
-                @if (!String.IsNullOrEmpty(card.Comment))
-                {
-                    <br /><small class="text-muted">@card.Comment</small>
-                }
-            </li>
-        }
-    </ul>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Слово українською</th>
+                <th>Слово англійською</th>
+                <th>Коментар</th>
+                <th>Дії</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var card in Model.Cards)
+            {
+                <tr>
+                    <td>@card.WordUa</td>
+                    <td>@card.WordEn</td>
+                    <td>@(string.IsNullOrEmpty(card.Comment) ? "-" : card.Comment)</td>
+                    <td>
+                        <a asp-controller="Card" asp-action="EditCard" asp-route-cardId="@card.Id" class="btn btn-sm btn-outline-primary">Редагувати</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
 }
 else
 {
     <p>No cards added yet.</p>
 }
 
-<h2>Додати нову картку</h2>
+<hr class="my-4" />
 
+<h2>Додати нову картку</h2>
 <form asp-action="CreateCard" asp-route-cardsetId="@Model.Id" method="post">
     <div class="form-group">
         <label for="WordUa">Слово українською</label>
