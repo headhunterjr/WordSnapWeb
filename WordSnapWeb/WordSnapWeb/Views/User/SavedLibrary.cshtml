@@ -1,0 +1,26 @@
+﻿@model IEnumerable<WordSnapWeb.Models.Cardset>
+
+@{
+    ViewData["Title"] = "Збережені набори";
+    var username = ViewBag.Username as string;
+}
+
+<h1>Збережені набори користувача @username</h1>
+
+@if (Model != null && Model.Any())
+{
+    <ul class="list-group">
+        @foreach (var cardset in Model)
+        {
+            <li class="list-group-item">
+                <a asp-controller="Cardset" asp-action="Details" asp-route-cardsetId="@cardset.Id">
+                    @cardset.Name
+                </a>
+            </li>
+        }
+    </ul>
+}
+else
+{
+    <p>Немає збережених наборів.</p>
+}
