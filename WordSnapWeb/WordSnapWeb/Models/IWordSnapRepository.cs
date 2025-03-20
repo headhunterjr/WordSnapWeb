@@ -11,7 +11,6 @@
         public Task<int> DeleteCardsetAsync(int cardsetId);
         public Task<int> UpdateCardAsync(Card card);
         public Task<int> UpdateCardsetAsync(Cardset cardset);
-        public Task<int> DeleteCardFromCardset(int cardId);
         public Task<Card?> GetCardAsync(int cardId);
     }
 }
