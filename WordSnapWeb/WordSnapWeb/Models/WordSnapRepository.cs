@@ -1,5 +1,4 @@
-﻿
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace WordSnapWeb.Models
 {
@@ -88,6 +87,38 @@ namespace WordSnapWeb.Models
         {
             var card = await _context.Cards.FirstOrDefaultAsync(c => c.Id == cardId);
             return card;
+        }
+
+        public async Task<int> AddCardsetToSavedLibraryAsync(Userscardset userscardset)
+        {
+            _context.Userscardsets.Add(userscardset);
+            return await _context.SaveChangesAsync();
+        }
+
+        public async Task<IEnumerable<Cardset>> GetUsersCardsetsLibraryAsync(int userId)
+        {
+            var usersCardsetsIds = await _context.Userscardsets.Where(uc => uc.UserRef == userId).Select(uc => uc.CardsetRef).ToListAsync();
+            var usersCardsetsLibrary = await _context.Cardsets.Where(c => usersCardsetsIds.Contains(c.Id)).ToListAsync();
+            return usersCardsetsLibrary;
+        }
+
+        public async Task<Userscardset?> GetUserscardsetAsync(int userId, int cardsetId)
+        {
+            var userscardset = await _context.Userscardsets.FirstOrDefaultAsync(uc => uc.UserRef == userId && uc.CardsetRef == cardsetId);
+            return userscardset;
+        }
+
+        public async Task<bool> DeleteUsersCardset(int userscardsetId)
+        {
+            var userscardset = await _context.Userscardsets.FirstOrDefaultAsync(uc => uc.Id == userscardsetId);
+            if (userscardset != null)
+            {
+                _context.Userscardsets.Remove(userscardset);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+
+            return false;
         }
     }
 }

@@ -12,5 +12,10 @@
         public Task<int> UpdateCardAsync(Card card);
         public Task<int> UpdateCardsetAsync(Cardset cardset);
         public Task<Card?> GetCardAsync(int cardId);
+        public Task<int> AddCardsetToSavedLibraryAsync(Userscardset userscardset);
+        public Task<IEnumerable<Cardset>> GetUsersCardsetsLibraryAsync(int userId);
+        public Task<Userscardset?> GetUserscardsetAsync(int userId, int cardsetId);
+        public Task<bool> DeleteUsersCardset(int userscardsetId);
     }
+}
 }
