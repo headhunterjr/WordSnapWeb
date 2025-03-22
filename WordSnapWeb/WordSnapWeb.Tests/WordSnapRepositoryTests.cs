@@ -190,5 +190,129 @@ namespace WordSnapWeb.Tests
             Assert.NotNull(result);
             Assert.Equal("Sun", result.WordEn);
         }
+
+        [Fact]
+        public async Task AddCardsetToSavedLibraryAsync_ShouldAddUsersCardset()
+        {
+            // Arrange
+            var userscardset = new Userscardset { UserRef = 1, CardsetRef = 1 };
+
+            // Act
+            var result = await _repository.AddCardsetToSavedLibraryAsync(userscardset);
+            var savedEntry = await _context.Userscardsets.FirstOrDefaultAsync(uc => uc.UserRef == 1 && uc.CardsetRef == 1);
+
+            // Assert
+            Assert.Equal(1, result);
+            Assert.NotNull(savedEntry);
+        }
+
+        [Fact]
+        public async Task GetUsersCardsetsLibraryAsync_ShouldReturnUserCardsets()
+        {
+            // Arrange
+            var cardset1 = new Cardset { Name = "Cardset 1", IsPublic = true };
+            var cardset2 = new Cardset { Name = "Cardset 2", IsPublic = true };
+            _context.Cardsets.AddRange(cardset1, cardset2);
+            await _context.SaveChangesAsync();
+
+            var userscardset1 = new Userscardset { UserRef = 1, CardsetRef = cardset1.Id };
+            var userscardset2 = new Userscardset { UserRef = 1, CardsetRef = cardset2.Id };
+            _context.Userscardsets.AddRange(userscardset1, userscardset2);
+            await _context.SaveChangesAsync();
+
+            // Act
+            var result = await _repository.GetUsersCardsetsLibraryAsync(1);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(2, result.Count());
+        }
+
+        [Fact]
+        public async Task GetUserscardsetAsync_ShouldReturnUsersCardset()
+        {
+            // Arrange
+            var userscardset = new Userscardset { UserRef = 1, CardsetRef = 1 };
+            _context.Userscardsets.Add(userscardset);
+            await _context.SaveChangesAsync();
+
+            // Act
+            var result = await _repository.GetUserscardsetAsync(1, 1);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(1, result.UserRef);
+            Assert.Equal(1, result.CardsetRef);
+        }
+
+        [Fact]
+        public async Task DeleteUsersCardset_ShouldRemoveUsersCardset()
+        {
+            // Arrange
+            var userscardset = new Userscardset { UserRef = 1, CardsetRef = 1 };
+            _context.Userscardsets.Add(userscardset);
+            await _context.SaveChangesAsync();
+
+            // Act
+            var result = await _repository.DeleteUsersCardset(userscardset.Id);
+            var deletedEntry = await _context.Userscardsets.FindAsync(userscardset.Id);
+
+            // Assert
+            Assert.True(result);
+            Assert.Null(deletedEntry);
+        }
+
+        [Fact]
+        public async Task AddTestProgressAsync_ShouldAddProgress()
+        {
+            // Arrange
+            var progress = new Progress { UserRef = 1, CardsetRef = 1, SuccessRate = 90 };
+
+            // Act
+            var result = await _repository.AddTestProgressAsync(progress);
+            var savedProgress = await _context.Progresses.FirstOrDefaultAsync(p => p.UserRef == 1 && p.CardsetRef == 1);
+
+            // Assert
+            Assert.Equal(1, result);
+            Assert.NotNull(savedProgress);
+            Assert.Equal(90, savedProgress.SuccessRate);
+        }
+
+        [Fact]
+        public async Task GetProgress_ShouldReturnProgress()
+        {
+            // Arrange
+            var progress = new Progress { UserRef = 1, CardsetRef = 1, SuccessRate = 80 };
+            _context.Progresses.Add(progress);
+            await _context.SaveChangesAsync();
+
+            // Act
+            var result = await _repository.GetProgress(1, 1);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(80, result.SuccessRate);
+        }
+
+        [Fact]
+        public async Task UpdateProgress_ShouldModifyProgress()
+        {
+            // Arrange
+            var progress = new Progress { UserRef = 1, CardsetRef = 1, SuccessRate = 60 };
+            _context.Progresses.Add(progress);
+            await _context.SaveChangesAsync();
+
+            progress.SuccessRate = 95;
+
+            // Act
+            var result = await _repository.UpdateProgress(progress);
+            var updatedProgress = await _context.Progresses.FirstOrDefaultAsync(p => p.UserRef == 1 && p.CardsetRef == 1);
+
+            // Assert
+            Assert.Equal(1, result);
+            Assert.NotNull(updatedProgress);
+            Assert.Equal(95, updatedProgress.SuccessRate);
+        }
+
     }
 }
