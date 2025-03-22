@@ -16,6 +16,8 @@
         public Task<IEnumerable<Cardset>> GetUsersCardsetsLibraryAsync(int userId);
         public Task<Userscardset?> GetUserscardsetAsync(int userId, int cardsetId);
         public Task<bool> DeleteUsersCardset(int userscardsetId);
+        public Task<int> AddTestProgressAsync(Progress progress);
+        public Task<Progress?> GetProgress(int userId, int cardsetId);
+        public Task<int> UpdateProgress(Progress progress);
     }
-}
 }

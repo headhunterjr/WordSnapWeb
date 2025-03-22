@@ -120,5 +120,23 @@ namespace WordSnapWeb.Models
 
             return false;
         }
+
+        public async Task<int> AddTestProgressAsync(Progress progress)
+        {
+            _context.Progresses.Add(progress);
+            return await _context.SaveChangesAsync();
+        }
+
+        public async Task<Progress?> GetProgress(int userId, int cardsetId)
+        {
+            var progress = await _context.Progresses.FirstOrDefaultAsync(p => p.UserRef == userId & p.CardsetRef == cardsetId);
+            return progress;
+        }
+
+        public async Task<int> UpdateProgress(Progress progress)
+        {
+            _context.Progresses.Update(progress);
+            return await _context.SaveChangesAsync();
+        }
     }
 }
