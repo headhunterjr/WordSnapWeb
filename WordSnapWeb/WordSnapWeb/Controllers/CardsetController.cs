@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Diagnostics;
 using WordSnapWeb.Models;
+using WordSnapWeb.Services;
 
 namespace WordSnapWeb.Controllers
 {
@@ -8,8 +10,6 @@ namespace WordSnapWeb.Controllers
     {
         private readonly IWordSnapRepository _repository;
 
-        // test user id
-        private const int CurrentUserId = 82;
 
         public CardsetController(IWordSnapRepository repository)
         {
@@ -24,8 +24,15 @@ namespace WordSnapWeb.Controllers
             {
                 return NotFound();
             }
-            var userscardset = await _repository.GetUserscardsetAsync(CurrentUserId, cardsetId);
-            ViewBag.IsSaved = (userscardset != null);
+            if (UserSession.Instance.IsLoggedIn)
+            {
+                var userscardset = await _repository.GetUserscardsetAsync(UserSession.Instance.CurrentUser.Id, cardsetId);
+                ViewBag.IsSaved = (userscardset != null);
+            }
+            else
+            {
+                ViewBag.IsSaved = false;
+            }
 
             return View(cardset);
         }
@@ -41,12 +48,12 @@ namespace WordSnapWeb.Controllers
         [HttpPost("AddToLibrary/{cardsetId}")]
         public async Task<IActionResult> AddToLibrary(int cardsetId)
         {
-            var existing = await _repository.GetUserscardsetAsync(CurrentUserId, cardsetId);
+            var existing = await _repository.GetUserscardsetAsync(UserSession.Instance.CurrentUser.Id, cardsetId);
             if (existing == null)
             {
                 var userscardset = new Userscardset
                 {
-                    UserRef = CurrentUserId,
+                    UserRef = UserSession.Instance.CurrentUser.Id,
                     CardsetRef = cardsetId
                 };
                 await _repository.AddCardsetToSavedLibraryAsync(userscardset);
@@ -57,7 +64,7 @@ namespace WordSnapWeb.Controllers
         [HttpPost("RemoveFromLibrary/{cardsetId}")]
         public async Task<IActionResult> RemoveFromLibrary(int cardsetId)
         {
-            var existing = await _repository.GetUserscardsetAsync(CurrentUserId, cardsetId);
+            var existing = await _repository.GetUserscardsetAsync(UserSession.Instance.CurrentUser.Id, cardsetId);
             if (existing != null)
             {
                 await _repository.DeleteUsersCardset(existing.Id);
@@ -101,7 +108,7 @@ namespace WordSnapWeb.Controllers
                 TempData["Error"] = "Немає карток для тесту.";
                 return RedirectToAction("Details", new { cardsetId });
             }
-            var progress = await _repository.GetProgress(CurrentUserId, cardsetId);
+            var progress = await _repository.GetProgress(UserSession.Instance.CurrentUser.Id, cardsetId);
             double bestScore = 0;
             if (progress != null)
             {
@@ -121,12 +128,12 @@ namespace WordSnapWeb.Controllers
         [HttpPost("{cardsetId}/TakeTest")]
         public async Task<IActionResult> TakeTest(int cardsetId, double score)
         {
-            var progress = await _repository.GetProgress(CurrentUserId, cardsetId);
+            var progress = await _repository.GetProgress(UserSession.Instance.CurrentUser.Id, cardsetId);
             if (progress == null)
             {
                 var newProgress = new Progress
                 {
-                    UserRef = CurrentUserId,
+                    UserRef = UserSession.Instance.CurrentUser.Id,
                     CardsetRef = cardsetId,
                     SuccessRate = score,
                     LastAccessed = DateTime.Now

@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using WordSnapWeb.Models;
+using WordSnapWeb.Services;
 
 namespace WordSnapWeb.Controllers;
 
@@ -38,7 +39,7 @@ public class HomeController : Controller
     {
         Cardset cardset = new Cardset()
         {
-            UserRef = 82,
+            UserRef = UserSession.Instance.CurrentUser.Id,
             Name = "Без назви",
             IsPublic = true,
             CreatedAt = DateTime.Now,
