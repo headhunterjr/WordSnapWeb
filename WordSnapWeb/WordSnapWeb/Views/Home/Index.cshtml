@@ -21,13 +21,13 @@
     </form>
 </div>
 
-<h2>Створити новий набір карток</h2>
-<form asp-action="CreateCardset" method="post">
-    <button type="submit" class="btn btn-success">Створити набір</button>
-</form>
 
 @if (currentUser != null)
 {
+    <h2>Створити новий набір карток</h2>
+    <form asp-action="CreateCardset" method="post">
+        <button type="submit" class="btn btn-success">Створити набір</button>
+    </form>
     <div class="mt-3">
         <a asp-controller="User" asp-action="SavedLibrary" asp-route-username="@currentUser.Username" class="btn btn-info">
             Моя збережена колекція
