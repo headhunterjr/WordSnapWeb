@@ -5,11 +5,11 @@
 <div class="text-center">
     @if (currentUser == null)
     {
-        <a asp-controller="Account" asp-action="Login" class="btn btn-primary">Log in</a>
+        <a asp-controller="Account" asp-action="Login" class="btn btn-primary">Увійти</a>
     }
     else
     {
-        <a asp-controller="Account" asp-action="Logout" class="btn btn-danger">Log out</a>
+        <a asp-controller="Account" asp-action="Logout" class="btn btn-danger">Вийти</a>
     }
 
     <form asp-action="SearchCardset" method="get" class="mt-3">
