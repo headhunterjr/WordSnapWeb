@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using WordSnapWeb.Models;
+using WordSnapWeb.Services;
 
 namespace WordSnapWeb
 {
@@ -19,6 +20,8 @@ namespace WordSnapWeb
             builder.Services.AddControllersWithViews();
             builder.Services.AddDbContext<WordSnapDbContext>(options => options.UseNpgsql(connectionString));
             builder.Services.AddScoped<IWordSnapRepository, WordSnapRepository>();
+            builder.Services.AddScoped<IValidationService, ValidationService>();
+            builder.Services.AddScoped<AuthenticationService>();
 
             var app = builder.Build();
 

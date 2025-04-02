@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using WordSnapWeb.Models;
+using WordSnapWeb.Services;
 
 namespace WordSnapWeb.Controllers
 {
@@ -7,9 +8,6 @@ namespace WordSnapWeb.Controllers
     public class UserController : Controller
     {
         private readonly IWordSnapRepository _repository;
-        // test user id and username
-        private const int CurrentUserId = 82;
-        private const string CurrentUsername = "test_username";
 
         public UserController(IWordSnapRepository repository)
         {
@@ -19,12 +17,17 @@ namespace WordSnapWeb.Controllers
         [HttpGet("SavedLibrary")]
         public async Task<IActionResult> SavedLibrary(string username)
         {
-            if (username != CurrentUsername)
+            if (!UserSession.Instance.IsLoggedIn)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+            var currentUser = UserSession.Instance.CurrentUser;
+            if (username != currentUser.Username)
             {
                 return NotFound();
             }
 
-            var cardsets = await _repository.GetUsersCardsetsLibraryAsync(CurrentUserId);
+            var cardsets = await _repository.GetUsersCardsetsLibraryAsync(currentUser.Id);
             ViewBag.Username = username;
             return View(cardsets);
         }
