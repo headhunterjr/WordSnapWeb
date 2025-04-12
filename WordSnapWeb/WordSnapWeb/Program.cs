@@ -8,17 +8,11 @@ namespace WordSnapWeb
     {
         public static void Main(string[] args)
         {
-            var directory = Path.Combine(Directory.GetCurrentDirectory(), "bin/Debug/net9.0");
-            var configuration = new ConfigurationBuilder()
-                        .SetBasePath(directory)
-                        .AddJsonFile("appsettings.json")
-                        .Build();
-            var connectionString = configuration.GetConnectionString("DatabaseConnection");
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
-            builder.Services.AddDbContext<WordSnapDbContext>(options => options.UseNpgsql(connectionString));
+            builder.Services.AddDbContext<WordSnapDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("DatabaseConnection")));
             builder.Services.AddScoped<IWordSnapRepository, WordSnapRepository>();
             builder.Services.AddScoped<IValidationService, ValidationService>();
             builder.Services.AddScoped<AuthenticationService>();
@@ -33,7 +27,7 @@ namespace WordSnapWeb
                 app.UseHsts();
             }
 
-            app.UseHttpsRedirection();
+                app.UseHttpsRedirection();
             app.UseRouting();
 
             app.UseAuthorization();
