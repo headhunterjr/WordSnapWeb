@@ -75,8 +75,11 @@ namespace WordSnapWeb.Areas.Identity.Pages.Account
 
             if (result.IsLockedOut)
             {
-                _logger.LogWarning("User account locked out.");
-                return RedirectToPage("./Lockout");
+                var lockoutEnd = await _userManager.GetLockoutEndDateAsync(user);
+                var untilLocal = lockoutEnd?.ToLocalTime().ToString("g") ?? "невідомого часу";
+
+                ModelState.AddModelError(string.Empty, $"Ваш акаунт заблоковано до {untilLocal}.");
+                return Page();
             }
 
             ModelState.AddModelError(string.Empty, "Invalid login attempt.");

@@ -24,6 +24,8 @@ namespace WordSnapWeb
                 options.User.RequireUniqueEmail = true;
                 options.SignIn.RequireConfirmedAccount = false;
                 options.SignIn.RequireConfirmedEmail = false;
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromDays(1);
+                options.Lockout.AllowedForNewUsers = true;
             }).AddEntityFrameworkStores<WordSnapDbContext>().AddDefaultTokenProviders();
 
             var app = builder.Build();

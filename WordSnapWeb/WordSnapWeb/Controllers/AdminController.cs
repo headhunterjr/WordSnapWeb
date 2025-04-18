@@ -22,12 +22,47 @@ public class AdminController : Controller
     [HttpPost]
     public async Task<IActionResult> BanUser(string userId)
     {
-        if (userId == null) return BadRequest();
+        if (userId == null)
+        {
+            return BadRequest();
+        }
         var user = await _users.FindByIdAsync(userId);
-        if (user == null) return NotFound();
+        if (user == null)
+        {
+            return NotFound();
+        }
 
         await _users.DeleteAsync(user);
 
         return RedirectToAction(nameof(Users));
     }
+
+    [HttpPost]
+    public async Task<IActionResult> LockUser(string userId, int days = 1)
+    {
+        var user = await _users.FindByIdAsync(userId);
+        if (user == null)
+        {
+            return NotFound();
+        }
+
+        await _users.SetLockoutEndDateAsync(user, DateTimeOffset.UtcNow.AddDays(days));
+
+        return RedirectToAction(nameof(Users));
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> UnlockUser(string userId)
+    {
+        var user = await _users.FindByIdAsync(userId);
+        if (user == null)
+        {
+            return NotFound();
+        }
+
+        await _users.SetLockoutEndDateAsync(user, DateTimeOffset.UtcNow);
+
+        return RedirectToAction(nameof(Users));
+    }
+
 }
