@@ -7,7 +7,7 @@ public partial class Cardset
 {
     public int Id { get; set; }
 
-    public int UserRef { get; set; }
+    public required string UserRef { get; set; }
 
     public string Name { get; set; } = null!;
 
@@ -19,7 +19,7 @@ public partial class Cardset
 
     public virtual ICollection<Progress> Progresses { get; set; } = new List<Progress>();
 
-    public virtual User UserRefNavigation { get; set; } = null!;
+    public virtual ApplicationUser UserRefNavigation { get; set; } = null!;
 
     public virtual ICollection<Userscardset> Userscardsets { get; set; } = new List<Userscardset>();
 }

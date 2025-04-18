@@ -1,7 +1,8 @@
 ﻿using System.Diagnostics;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using WordSnapWeb.Models;
-using WordSnapWeb.Services;
 
 namespace WordSnapWeb.Controllers;
 
@@ -9,11 +10,13 @@ public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;
     private readonly IWordSnapRepository _repository;
+    private readonly UserManager<ApplicationUser> _users;
 
-    public HomeController(ILogger<HomeController> logger, IWordSnapRepository repository)
+    public HomeController(ILogger<HomeController> logger, IWordSnapRepository repository, UserManager<ApplicationUser> users)
     {
         _logger = logger;
         _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+        _users = users ?? throw new ArgumentNullException(nameof(users));
     }
 
     public IActionResult Index()
@@ -34,12 +37,13 @@ public class HomeController : Controller
     }
 
 
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> CreateCardset()
     {
         Cardset cardset = new Cardset()
         {
-            UserRef = UserSession.Instance.CurrentUser.Id,
+            UserRef = _users.GetUserId(User),
             Name = "Без назви",
             IsPublic = true,
             CreatedAt = DateTime.Now,

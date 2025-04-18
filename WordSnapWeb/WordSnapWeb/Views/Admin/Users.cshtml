@@ -1,0 +1,22 @@
+﻿@model List<ApplicationUser>
+
+<h2>Користувачі</h2>
+<table class="table">
+    <thead><tr><th>Ім'я</th><th>Пошта</th><th>Дії</th></tr></thead>
+    <tbody>
+        @foreach (var u in Model)
+        {
+            <tr>
+                <td>@u.UserName</td>
+                <td>@u.Email</td>
+                <td>
+                    <form asp-action="BanUser" method="post"
+                          onsubmit="return confirm('Забанити @u.UserName?');">
+                        <input type="hidden" name="userId" value="@u.Id" />
+                        <button class="btn btn-danger btn-sm">Забанити</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

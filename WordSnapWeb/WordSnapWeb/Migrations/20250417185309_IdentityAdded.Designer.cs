@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using WordSnapWeb.Models;
@@ -11,9 +12,11 @@ using WordSnapWeb.Models;
 namespace WordSnapWeb.Migrations
 {
     [DbContext(typeof(WordSnapDbContext))]
-    partial class WordSnapDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250417185309_IdentityAdded")]
+    partial class IdentityAdded
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -166,11 +169,17 @@ namespace WordSnapWeb.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("text");
 
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("Email")
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
                     b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool?>("IsVerified")
                         .HasColumnType("boolean");
 
                     b.Property<bool>("LockoutEnabled")
@@ -188,6 +197,10 @@ namespace WordSnapWeb.Migrations
                         .HasColumnType("character varying(256)");
 
                     b.Property<string>("PasswordHash")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PasswordSalt")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("PhoneNumber")
@@ -264,6 +277,9 @@ namespace WordSnapWeb.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("ApplicationUserId")
+                        .HasColumnType("text");
+
                     b.Property<DateTime?>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp without time zone")
@@ -282,13 +298,14 @@ namespace WordSnapWeb.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("name");
 
-                    b.Property<string>("UserRef")
-                        .IsRequired()
-                        .HasColumnType("text")
+                    b.Property<int>("UserRef")
+                        .HasColumnType("integer")
                         .HasColumnName("user_ref");
 
                     b.HasKey("Id")
                         .HasName("cardsets_pkey");
+
+                    b.HasIndex("ApplicationUserId");
 
                     b.HasIndex("UserRef");
 
@@ -297,13 +314,16 @@ namespace WordSnapWeb.Migrations
 
             modelBuilder.Entity("WordSnapWeb.Models.Progress", b =>
                 {
-                    b.Property<string>("UserRef")
-                        .HasColumnType("text")
+                    b.Property<int>("UserRef")
+                        .HasColumnType("integer")
                         .HasColumnName("user_ref");
 
                     b.Property<int>("CardsetRef")
                         .HasColumnType("integer")
                         .HasColumnName("cardset_ref");
+
+                    b.Property<string>("ApplicationUserId")
+                        .HasColumnType("text");
 
                     b.Property<DateTime?>("LastAccessed")
                         .ValueGeneratedOnAdd()
@@ -320,9 +340,63 @@ namespace WordSnapWeb.Migrations
                     b.HasKey("UserRef", "CardsetRef")
                         .HasName("progress_pkey");
 
+                    b.HasIndex("ApplicationUserId");
+
                     b.HasIndex("CardsetRef");
 
                     b.ToTable("progress", (string)null);
+                });
+
+            modelBuilder.Entity("WordSnapWeb.Models.User", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("email");
+
+                    b.Property<bool?>("IsVerified")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_verified");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("password_hash");
+
+                    b.Property<string>("PasswordSalt")
+                        .IsRequired()
+                        .HasMaxLength(24)
+                        .HasColumnType("character(24)")
+                        .HasColumnName("password_salt")
+                        .IsFixedLength();
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("username");
+
+                    b.HasKey("Id")
+                        .HasName("users_pkey");
+
+                    b.ToTable("users", (string)null);
                 });
 
             modelBuilder.Entity("WordSnapWeb.Models.Userscardset", b =>
@@ -334,17 +408,21 @@ namespace WordSnapWeb.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("ApplicationUserId")
+                        .HasColumnType("text");
+
                     b.Property<int>("CardsetRef")
                         .HasColumnType("integer")
                         .HasColumnName("cardset_ref");
 
-                    b.Property<string>("UserRef")
-                        .IsRequired()
-                        .HasColumnType("text")
+                    b.Property<int>("UserRef")
+                        .HasColumnType("integer")
                         .HasColumnName("user_ref");
 
                     b.HasKey("Id")
                         .HasName("userscardsets_pkey");
+
+                    b.HasIndex("ApplicationUserId");
 
                     b.HasIndex("CardsetRef");
 
@@ -418,7 +496,11 @@ namespace WordSnapWeb.Migrations
 
             modelBuilder.Entity("WordSnapWeb.Models.Cardset", b =>
                 {
-                    b.HasOne("WordSnapWeb.Models.ApplicationUser", "UserRefNavigation")
+                    b.HasOne("WordSnapWeb.Models.ApplicationUser", null)
+                        .WithMany("Cardsets")
+                        .HasForeignKey("ApplicationUserId");
+
+                    b.HasOne("WordSnapWeb.Models.User", "UserRefNavigation")
                         .WithMany("Cardsets")
                         .HasForeignKey("UserRef")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -430,6 +512,10 @@ namespace WordSnapWeb.Migrations
 
             modelBuilder.Entity("WordSnapWeb.Models.Progress", b =>
                 {
+                    b.HasOne("WordSnapWeb.Models.ApplicationUser", null)
+                        .WithMany("Progresses")
+                        .HasForeignKey("ApplicationUserId");
+
                     b.HasOne("WordSnapWeb.Models.Cardset", "CardsetRefNavigation")
                         .WithMany("Progresses")
                         .HasForeignKey("CardsetRef")
@@ -437,7 +523,7 @@ namespace WordSnapWeb.Migrations
                         .IsRequired()
                         .HasConstraintName("progress_cardset_ref_fkey");
 
-                    b.HasOne("WordSnapWeb.Models.ApplicationUser", "UserRefNavigation")
+                    b.HasOne("WordSnapWeb.Models.User", "UserRefNavigation")
                         .WithMany("Progresses")
                         .HasForeignKey("UserRef")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -451,6 +537,10 @@ namespace WordSnapWeb.Migrations
 
             modelBuilder.Entity("WordSnapWeb.Models.Userscardset", b =>
                 {
+                    b.HasOne("WordSnapWeb.Models.ApplicationUser", null)
+                        .WithMany("Userscardsets")
+                        .HasForeignKey("ApplicationUserId");
+
                     b.HasOne("WordSnapWeb.Models.Cardset", "CardsetRefNavigation")
                         .WithMany("Userscardsets")
                         .HasForeignKey("CardsetRef")
@@ -458,7 +548,7 @@ namespace WordSnapWeb.Migrations
                         .IsRequired()
                         .HasConstraintName("userscardsets_cardset_ref_fkey");
 
-                    b.HasOne("WordSnapWeb.Models.ApplicationUser", "UserRefNavigation")
+                    b.HasOne("WordSnapWeb.Models.User", "UserRefNavigation")
                         .WithMany("Userscardsets")
                         .HasForeignKey("UserRef")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -482,6 +572,15 @@ namespace WordSnapWeb.Migrations
             modelBuilder.Entity("WordSnapWeb.Models.Cardset", b =>
                 {
                     b.Navigation("Cards");
+
+                    b.Navigation("Progresses");
+
+                    b.Navigation("Userscardsets");
+                });
+
+            modelBuilder.Entity("WordSnapWeb.Models.User", b =>
+                {
+                    b.Navigation("Cardsets");
 
                     b.Navigation("Progresses");
 

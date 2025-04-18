@@ -5,7 +5,7 @@ namespace WordSnapWeb.Models;
 
 public partial class Progress
 {
-    public int UserRef { get; set; }
+    public required string UserRef { get; set; }
 
     public int CardsetRef { get; set; }
 
@@ -15,5 +15,5 @@ public partial class Progress
 
     public virtual Cardset CardsetRefNavigation { get; set; } = null!;
 
-    public virtual User UserRefNavigation { get; set; } = null!;
+    public virtual ApplicationUser UserRefNavigation { get; set; } = null!;
 }

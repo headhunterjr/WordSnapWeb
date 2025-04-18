@@ -1,16 +1,18 @@
 ﻿@model WordSnapWeb.Models.Cardset
-@using WordSnapWeb.Services
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<WordSnapWeb.Models.ApplicationUser> UserManager
+@inject SignInManager<WordSnapWeb.Models.ApplicationUser> SignInManager
 
 @{
     ViewData["Title"] = "Cardset Details";
-    var currentUser = UserSession.Instance.CurrentUser;
-    bool isOwner = currentUser != null && currentUser.Id == Model.UserRef;
-    bool isLoggedIn = currentUser != null;
+    var isSignedIn = SignInManager.IsSignedIn(User);
+    var isAdmin = User.IsInRole("Admin");
 }
 
 <h1>@Model.Name</h1>
 
-@if (isOwner)
+@if (UserManager.GetUserId(User) == Model.UserRef || isAdmin)
 {
     <h2>Редагувати інформацію набору</h2>
     <form asp-action="EditCardset" method="post">
@@ -64,7 +66,7 @@ else
     <p><em>Редагування недоступне. Ви не є власником цього набору або не увійшли в систему.</em></p>
 }
 
-@if (isLoggedIn)
+@if (isSignedIn)
 {
     <a asp-controller="Cardset" asp-action="TakeTest" asp-route-cardsetId="@Model.Id" class="btn btn-primary">
         <i class="bi bi-check-square"></i> Пройти тест
@@ -82,7 +84,7 @@ else
                 <th>Слово українською</th>
                 <th>Слово англійською</th>
                 <th>Коментар</th>
-                @if (isOwner)
+                @if (UserManager.GetUserId(User) == Model.UserRef || isAdmin)
                 {
                     <th>Дії</th>
                 }
@@ -95,7 +97,7 @@ else
                     <td>@card.WordUa</td>
                     <td>@card.WordEn</td>
                     <td>@(string.IsNullOrEmpty(card.Comment) ? "-" : card.Comment)</td>
-                    @if (isOwner)
+                    @if (UserManager.GetUserId(User) == Model.UserRef || isAdmin)
                     {
                         <td>
                             <a asp-controller="Card" asp-action="EditCard" asp-route-cardId="@card.Id" class="btn btn-sm btn-outline-primary">Редагувати</a>
@@ -113,7 +115,7 @@ else
 
 <hr class="my-4" />
 
-@if (isOwner)
+@if (UserManager.GetUserId(User) == Model.UserRef || isAdmin)
 {
     <h2>Додати нову картку</h2>
     <form asp-action="CreateCard" asp-route-cardsetId="@Model.Id" method="post">
@@ -131,4 +133,18 @@ else
         </div>
         <button type="submit" class="btn btn-primary">Додати картку</button>
     </form>
+}
+
+@if (isAdmin)
+{
+    var owner = await UserManager.FindByIdAsync(Model.UserRef);
+    <div class="alert alert-warning">
+        Власник: <strong>@owner.UserName</strong>
+        <form asp-controller="Admin" asp-action="BanUser" method="post"
+              onsubmit="return confirm('Ban this user?');"
+              class="d-inline ml-2">
+            <input type="hidden" name="userId" value="@owner.Id" />
+            <button class="btn btn-sm btn-danger">Забанити власника</button>
+        </form>
+    </div>
 }

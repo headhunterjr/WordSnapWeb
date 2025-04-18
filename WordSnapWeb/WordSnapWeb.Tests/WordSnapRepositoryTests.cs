@@ -1,4 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Moq;
 using WordSnapWeb.Models;
 
 namespace WordSnapWeb.Tests
@@ -6,16 +9,25 @@ namespace WordSnapWeb.Tests
     public class WordSnapRepositoryTests : IDisposable
     {
         private readonly WordSnapDbContext _context;
-        private readonly WordSnapRepository _repository;
+        private readonly WordSnapRepository _repo;
+        private readonly ApplicationUser _testUser;
 
         public WordSnapRepositoryTests()
         {
-            var options = new DbContextOptionsBuilder<WordSnapDbContext>()
-                .UseInMemoryDatabase(databaseName: "TestDatabase")
+            var opts = new DbContextOptionsBuilder<WordSnapDbContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
                 .Options;
+            _context = new WordSnapDbContext(opts);
+            _repo = new WordSnapRepository(_context);
 
-            _context = new WordSnapDbContext(options);
-            _repository = new WordSnapRepository(_context);
+            _testUser = new ApplicationUser
+            {
+                UserName = "alice",
+                Email = "alice@example.com",
+                EmailConfirmed = true
+            };
+            _context.Users.Add(_testUser);
+            _context.SaveChanges();
         }
 
         public void Dispose()
@@ -25,294 +37,323 @@ namespace WordSnapWeb.Tests
         }
 
         [Fact]
-        public async Task AddCardsetAsync_ShouldAddCardset()
+        public async Task AddCardsetAsync_ShouldAddCardset_WithValidUserRef()
         {
-            // Arrange
-            var cardset = new Cardset { Name = "Test Cardset", IsPublic = true };
+            var cardset = new Cardset
+            {
+                Name = "Test Cardset",
+                IsPublic = true,
+                UserRef = _testUser.Id
+            };
 
-            // Act
-            await _repository.AddCardsetAsync(cardset);
-            var result = await _context.Cardsets.FirstOrDefaultAsync(cs => cs.Name == "Test Cardset");
+            var changed = await _repo.AddCardsetAsync(cardset);
+            var fromDb = await _context.Cardsets.FirstOrDefaultAsync(cs => cs.Name == "Test Cardset");
 
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal("Test Cardset", result.Name);
-            Assert.True(result.IsPublic);
+            Assert.Equal(1, changed);
+            Assert.NotNull(fromDb);
+            Assert.Equal(_testUser.Id, fromDb.UserRef);
         }
 
         [Fact]
         public async Task DeleteCardsetAsync_ShouldDeleteCardset()
         {
-            // Arrange
-            var cardset = new Cardset { Name = "Test Cardset", IsPublic = true };
+            var cardset = new Cardset
+            {
+                Name = "ToDelete",
+                IsPublic = true,
+                UserRef = _testUser.Id
+            };
             _context.Cardsets.Add(cardset);
             await _context.SaveChangesAsync();
 
-            // Act
-            await _repository.DeleteCardsetAsync(cardset.Id);
+            await _repo.DeleteCardsetAsync(cardset.Id);
             var result = await _context.Cardsets.FindAsync(cardset.Id);
 
-            // Assert
             Assert.Null(result);
         }
 
         [Fact]
-        public async Task UpdateCardsetAsync_ShouldUpdateCardset()
+        public async Task UpdateCardsetAsync_ShouldUpdateName()
         {
-            // Arrange
-            var cardset = new Cardset { Name = "Old Name", IsPublic = true };
+            var cardset = new Cardset
+            {
+                Name = "OldName",
+                IsPublic = false,
+                UserRef = _testUser.Id
+            };
             _context.Cardsets.Add(cardset);
             await _context.SaveChangesAsync();
 
-            cardset.Name = "New Name";
+            cardset.Name = "NewName";
+            await _repo.UpdateCardsetAsync(cardset);
+            var updated = await _context.Cardsets.FindAsync(cardset.Id);
 
-            // Act
-            await _repository.UpdateCardsetAsync(cardset);
-            var updatedCardset = await _context.Cardsets.FindAsync(cardset.Id);
-
-            // Assert
-            Assert.NotNull(updatedCardset);
-            Assert.Equal("New Name", updatedCardset.Name);
+            Assert.Equal("NewName", updated.Name);
         }
 
         [Fact]
         public async Task SwitchCardsetPrivacyAsync_ShouldToggleIsPublic()
         {
-            // Arrange
-            var cardset = new Cardset { Name = "Test Cardset", IsPublic = true };
+            var cardset = new Cardset
+            {
+                Name = "PrivacyTest",
+                IsPublic = false,
+                UserRef = _testUser.Id
+            };
             _context.Cardsets.Add(cardset);
             await _context.SaveChangesAsync();
 
-            // Act
-            await _repository.SwitchCardsetPrivacyAsync(cardset.Id);
-            var updatedCardset = await _context.Cardsets.FindAsync(cardset.Id);
+            await _repo.SwitchCardsetPrivacyAsync(cardset.Id);
+            var updated = await _context.Cardsets.FindAsync(cardset.Id);
 
-            // Assert
-            Assert.NotNull(updatedCardset);
-            Assert.False(updatedCardset.IsPublic);
+            Assert.True(updated.IsPublic);
         }
 
         [Fact]
-        public async Task GetCardsetsFromSearchAsync_ShouldReturnMatchingCardsets()
+        public async Task GetCardsetsFromSearchAsync_ShouldReturnPublicMatches()
         {
-            // Arrange
-            var cardset1 = new Cardset { Name = "English Words", IsPublic = true };
-            var cardset2 = new Cardset { Name = "Spanish Words", IsPublic = true };
-            _context.Cardsets.AddRange(cardset1, cardset2);
+            var cs1 = new Cardset { Name = "English", IsPublic = true, UserRef = _testUser.Id };
+            var cs2 = new Cardset { Name = "Spanish", IsPublic = true, UserRef = _testUser.Id };
+            var cs3 = new Cardset { Name = "Secret", IsPublic = false, UserRef = _testUser.Id };
+            _context.Cardsets.AddRange(cs1, cs2, cs3);
             await _context.SaveChangesAsync();
 
-            // Act
-            var result = await _repository.GetCardsetsFromSearchAsync("English");
+            var result = (await _repo.GetCardsetsFromSearchAsync("eng")).ToList();
 
-            // Assert
             Assert.Single(result);
-            Assert.Equal("English Words", result.First().Name);
+            Assert.Equal("English", result[0].Name);
         }
 
         [Fact]
-        public async Task GetCardsetByIdAsync_ShouldReturnCardset()
+        public async Task GetCardsetByIdAsync_ShouldIncludeCards()
         {
-            // Arrange
-            var cardset = new Cardset { Name = "Test Cardset", IsPublic = true };
-            _context.Cardsets.Add(cardset);
+            var cs = new Cardset
+            {
+                Name = "WithCards",
+                IsPublic = true,
+                UserRef = _testUser.Id,
+                Cards = new[]
+                {
+                    new Card { WordEn = "A", WordUa = "А" },
+                    new Card { WordEn = "B", WordUa = "Б" }
+                }.ToList()
+            };
+            _context.Cardsets.Add(cs);
             await _context.SaveChangesAsync();
 
-            // Act
-            var result = await _repository.GetCardsetByIdAsync(cardset.Id);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal("Test Cardset", result.Name);
+            var fetched = await _repo.GetCardsetByIdAsync(cs.Id);
+            Assert.Equal(2, fetched.Cards.Count);
         }
 
         [Fact]
         public async Task AddCardAsync_ShouldAddCard()
         {
-            // Arrange
-            var card = new Card { WordUa = "Привіт", WordEn = "Hello", Comment = "Greeting" };
+            var card = new Card { WordEn = "Hello", WordUa = "Привіт", Comment = "Greet" };
 
-            // Act
-            await _repository.AddCardAsync(card);
-            var result = await _context.Cards.FirstOrDefaultAsync(c => c.WordUa == "Привіт");
+            var changed = await _repo.AddCardAsync(card);
+            var saved = await _context.Cards.FirstOrDefaultAsync(c => c.WordEn == "Hello");
 
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal("Hello", result.WordEn);
+            Assert.Equal(1, changed);
+            Assert.NotNull(saved);
+            Assert.Equal("Привіт", saved.WordUa);
         }
 
         [Fact]
-        public async Task UpdateCardAsync_ShouldUpdateCard()
+        public async Task UpdateCardAsync_ShouldModifyCard()
         {
-            // Arrange
-            var card = new Card { WordUa = "Старе", WordEn = "Old", Comment = "Example" };
+            var card = new Card { WordEn = "Old", WordUa = "Старе", Comment = "com" };
             _context.Cards.Add(card);
             await _context.SaveChangesAsync();
 
-            card.WordEn = "Updated";
+            card.WordEn = "New";
+            await _repo.UpdateCardAsync(card);
+            var updated = await _context.Cards.FindAsync(card.Id);
 
-            // Act
-            await _repository.UpdateCardAsync(card);
-            var updatedCard = await _context.Cards.FindAsync(card.Id);
-
-            // Assert
-            Assert.NotNull(updatedCard);
-            Assert.Equal("Updated", updatedCard.WordEn);
+            Assert.Equal("New", updated.WordEn);
         }
 
         [Fact]
-        public async Task DeleteCardAsync_ShouldDeleteCard()
+        public async Task DeleteCardAsync_ShouldRemoveCard()
         {
-            // Arrange
-            var card = new Card { WordUa = "Кіт", WordEn = "Cat", Comment = "Animal" };
+            var card = new Card { WordEn = "X", WordUa = "Y", Comment = "c" };
             _context.Cards.Add(card);
             await _context.SaveChangesAsync();
 
-            // Act
-            await _repository.DeleteCardAsync(card.Id);
-            var result = await _context.Cards.FindAsync(card.Id);
+            await _repo.DeleteCardAsync(card.Id);
+            var found = await _context.Cards.FindAsync(card.Id);
 
-            // Assert
-            Assert.Null(result);
+            Assert.Null(found);
         }
 
         [Fact]
-        public async Task GetCardAsync_ShouldReturnCard()
+        public async Task GetCardAsync_ShouldIncludeNavigation()
         {
-            // Arrange
-            var card = new Card { WordUa = "Сонце", WordEn = "Sun", Comment = "Sky" };
+            var cs = new Cardset { Name = "C", IsPublic = true, UserRef = _testUser.Id };
+            _context.Cardsets.Add(cs);
+            await _context.SaveChangesAsync();
+
+            var card = new Card { WordEn = "W", WordUa = "U", CardsetRef = cs.Id };
             _context.Cards.Add(card);
             await _context.SaveChangesAsync();
 
-            // Act
-            var result = await _repository.GetCardAsync(card.Id);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal("Sun", result.WordEn);
+            var fetched = await _repo.GetCardAsync(card.Id);
+            Assert.NotNull(fetched);
+            Assert.Equal(cs.Id, fetched.CardsetRefNavigation.Id);
         }
 
         [Fact]
-        public async Task AddCardsetToSavedLibraryAsync_ShouldAddUsersCardset()
+        public async Task AddCardsetToSavedLibraryAsync_ShouldAddUserscardset()
         {
-            // Arrange
-            var userscardset = new Userscardset { UserRef = 1, CardsetRef = 1 };
+            var cs = new Cardset { Name = "LibTest", IsPublic = true, UserRef = _testUser.Id };
+            _context.Cardsets.Add(cs);
+            await _context.SaveChangesAsync();
 
-            // Act
-            var result = await _repository.AddCardsetToSavedLibraryAsync(userscardset);
-            var savedEntry = await _context.Userscardsets.FirstOrDefaultAsync(uc => uc.UserRef == 1 && uc.CardsetRef == 1);
+            var uc = new Userscardset { UserRef = _testUser.Id, CardsetRef = cs.Id };
+            var changed = await _repo.AddCardsetToSavedLibraryAsync(uc);
+            var saved = await _context.Userscardsets.FirstOrDefaultAsync(u => u.UserRef == _testUser.Id);
 
-            // Assert
-            Assert.Equal(1, result);
-            Assert.NotNull(savedEntry);
+            Assert.Equal(1, changed);
+            Assert.NotNull(saved);
         }
 
         [Fact]
-        public async Task GetUsersCardsetsLibraryAsync_ShouldReturnUserCardsets()
+        public async Task GetUsersCardsetsLibraryAsync_ShouldReturnAll()
         {
-            // Arrange
-            var cardset1 = new Cardset { Name = "Cardset 1", IsPublic = true };
-            var cardset2 = new Cardset { Name = "Cardset 2", IsPublic = true };
-            _context.Cardsets.AddRange(cardset1, cardset2);
+            var cs1 = new Cardset { Name = "A", IsPublic = true, UserRef = _testUser.Id };
+            var cs2 = new Cardset { Name = "B", IsPublic = true, UserRef = _testUser.Id };
+            _context.Cardsets.AddRange(cs1, cs2);
             await _context.SaveChangesAsync();
 
-            var userscardset1 = new Userscardset { UserRef = 1, CardsetRef = cardset1.Id };
-            var userscardset2 = new Userscardset { UserRef = 1, CardsetRef = cardset2.Id };
-            _context.Userscardsets.AddRange(userscardset1, userscardset2);
+            _context.Userscardsets.AddRange(
+                new Userscardset { UserRef = _testUser.Id, CardsetRef = cs1.Id },
+                new Userscardset { UserRef = _testUser.Id, CardsetRef = cs2.Id }
+            );
             await _context.SaveChangesAsync();
 
-            // Act
-            var result = await _repository.GetUsersCardsetsLibraryAsync(1);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal(2, result.Count());
+            var list = await _repo.GetUsersCardsetsLibraryAsync(_testUser.Id);
+            Assert.Equal(2, list.Count());
         }
 
         [Fact]
-        public async Task GetUserscardsetAsync_ShouldReturnUsersCardset()
+        public async Task GetUserscardsetAsync_ShouldReturnOne()
         {
-            // Arrange
-            var userscardset = new Userscardset { UserRef = 1, CardsetRef = 1 };
-            _context.Userscardsets.Add(userscardset);
+            var cs = new Cardset { Name = "L", IsPublic = true, UserRef = _testUser.Id };
+            _context.Cardsets.Add(cs);
             await _context.SaveChangesAsync();
 
-            // Act
-            var result = await _repository.GetUserscardsetAsync(1, 1);
+            var uc = new Userscardset { UserRef = _testUser.Id, CardsetRef = cs.Id };
+            _context.Userscardsets.Add(uc);
+            await _context.SaveChangesAsync();
 
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal(1, result.UserRef);
-            Assert.Equal(1, result.CardsetRef);
+            var fetched = await _repo.GetUserscardsetAsync(_testUser.Id, cs.Id);
+            Assert.Equal(_testUser.Id, fetched.UserRef);
+            Assert.Equal(cs.Id, fetched.CardsetRef);
         }
 
         [Fact]
-        public async Task DeleteUsersCardset_ShouldRemoveUsersCardset()
+        public async Task DeleteUsersCardset_ShouldReturnTrue()
         {
-            // Arrange
-            var userscardset = new Userscardset { UserRef = 1, CardsetRef = 1 };
-            _context.Userscardsets.Add(userscardset);
+            var cs = new Cardset { Name = "D", IsPublic = true, UserRef = _testUser.Id };
+            _context.Cardsets.Add(cs);
             await _context.SaveChangesAsync();
 
-            // Act
-            var result = await _repository.DeleteUsersCardset(userscardset.Id);
-            var deletedEntry = await _context.Userscardsets.FindAsync(userscardset.Id);
+            var uc = new Userscardset { UserRef = _testUser.Id, CardsetRef = cs.Id };
+            _context.Userscardsets.Add(uc);
+            await _context.SaveChangesAsync();
 
-            // Assert
+            var result = await _repo.DeleteUsersCardset(uc.Id);
             Assert.True(result);
-            Assert.Null(deletedEntry);
+            var deleted = await _context.Userscardsets.FindAsync(uc.Id);
+            Assert.Null(deleted);
         }
 
         [Fact]
         public async Task AddTestProgressAsync_ShouldAddProgress()
         {
-            // Arrange
-            var progress = new Progress { UserRef = 1, CardsetRef = 1, SuccessRate = 90 };
+            var cs = new Cardset { Name = "P", IsPublic = true, UserRef = _testUser.Id };
+            _context.Cardsets.Add(cs);
+            await _context.SaveChangesAsync();
 
-            // Act
-            var result = await _repository.AddTestProgressAsync(progress);
-            var savedProgress = await _context.Progresses.FirstOrDefaultAsync(p => p.UserRef == 1 && p.CardsetRef == 1);
+            var prog = new Progress
+            {
+                UserRef = _testUser.Id,
+                CardsetRef = cs.Id,
+                SuccessRate = 75.0
+            };
+            var changed = await _repo.AddTestProgressAsync(prog);
+            var saved = await _context.Progresses.FirstOrDefaultAsync(p => p.UserRef == _testUser.Id);
 
-            // Assert
-            Assert.Equal(1, result);
-            Assert.NotNull(savedProgress);
-            Assert.Equal(90, savedProgress.SuccessRate);
+            Assert.Equal(1, changed);
+            Assert.Equal(75.0, saved.SuccessRate);
         }
 
         [Fact]
         public async Task GetProgress_ShouldReturnProgress()
         {
-            // Arrange
-            var progress = new Progress { UserRef = 1, CardsetRef = 1, SuccessRate = 80 };
-            _context.Progresses.Add(progress);
+            var cs = new Cardset { Name = "GP", IsPublic = true, UserRef = _testUser.Id };
+            _context.Cardsets.Add(cs);
             await _context.SaveChangesAsync();
 
-            // Act
-            var result = await _repository.GetProgress(1, 1);
+            var prog = new Progress
+            {
+                UserRef = _testUser.Id,
+                CardsetRef = cs.Id,
+                SuccessRate = 50.0
+            };
+            _context.Progresses.Add(prog);
+            await _context.SaveChangesAsync();
 
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal(80, result.SuccessRate);
+            var fetched = await _repo.GetProgress(_testUser.Id, cs.Id);
+            Assert.Equal(50.0, fetched.SuccessRate);
         }
 
         [Fact]
         public async Task UpdateProgress_ShouldModifyProgress()
         {
-            // Arrange
-            var progress = new Progress { UserRef = 1, CardsetRef = 1, SuccessRate = 60 };
-            _context.Progresses.Add(progress);
+            var cs = new Cardset { Name = "UP", IsPublic = true, UserRef = _testUser.Id };
+            _context.Cardsets.Add(cs);
             await _context.SaveChangesAsync();
 
-            progress.SuccessRate = 95;
+            var prog = new Progress
+            {
+                UserRef = _testUser.Id,
+                CardsetRef = cs.Id,
+                SuccessRate = 40.0
+            };
+            _context.Progresses.Add(prog);
+            await _context.SaveChangesAsync();
 
-            // Act
-            var result = await _repository.UpdateProgress(progress);
-            var updatedProgress = await _context.Progresses.FirstOrDefaultAsync(p => p.UserRef == 1 && p.CardsetRef == 1);
-
-            // Assert
-            Assert.Equal(1, result);
-            Assert.NotNull(updatedProgress);
-            Assert.Equal(95, updatedProgress.SuccessRate);
+            prog.SuccessRate = 95.0;
+            var changed = await _repo.UpdateProgress(prog);
+            var updated = await _context.Progresses.FirstOrDefaultAsync(p => p.UserRef == _testUser.Id);
+            Assert.Equal(1, changed);
+            Assert.Equal(95.0, updated.SuccessRate);
         }
+    }
 
+    public class AdminControllerTests
+    {
+        [Fact]
+        public async Task BanUser_RemovesUser_AndRedirectsToUsers()
+        {
+            var storeMock = new Mock<IUserStore<ApplicationUser>>();
+            var userMgrMock = new Mock<UserManager<ApplicationUser>>(
+                storeMock.Object, null, null, null, null, null, null, null, null);
+
+            var toBan = new ApplicationUser { Id = "u123", UserName = "victim", Email = "v@example.com" };
+            userMgrMock.Setup(m => m.FindByIdAsync("u123"))
+                       .ReturnsAsync(toBan);
+            userMgrMock.Setup(m => m.DeleteAsync(toBan))
+                       .ReturnsAsync(IdentityResult.Success)
+                       .Verifiable();
+
+            var controller = new AdminController(userMgrMock.Object);
+
+            var result = await controller.BanUser("u123");
+
+            var redirect = Assert.IsType<RedirectToActionResult>(result);
+            Assert.Equal(nameof(AdminController.Users), redirect.ActionName);
+            userMgrMock.Verify();
+        }
     }
 }

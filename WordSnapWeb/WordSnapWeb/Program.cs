@@ -1,6 +1,6 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using WordSnapWeb.Models;
-using WordSnapWeb.Services;
 
 namespace WordSnapWeb
 {
@@ -12,10 +12,19 @@ namespace WordSnapWeb
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+            builder.Services.AddRazorPages();
             builder.Services.AddDbContext<WordSnapDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("DatabaseConnection")));
+
             builder.Services.AddScoped<IWordSnapRepository, WordSnapRepository>();
-            builder.Services.AddScoped<IValidationService, ValidationService>();
-            builder.Services.AddScoped<AuthenticationService>();
+            builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+            {
+                options.Password.RequiredLength = 8;
+                options.Password.RequireDigit = true;
+                options.Password.RequireUppercase = true;
+                options.User.RequireUniqueEmail = true;
+                options.SignIn.RequireConfirmedAccount = false;
+                options.SignIn.RequireConfirmedEmail = false;
+            }).AddEntityFrameworkStores<WordSnapDbContext>().AddDefaultTokenProviders();
 
             var app = builder.Build();
 
@@ -27,12 +36,14 @@ namespace WordSnapWeb
                 app.UseHsts();
             }
 
-                app.UseHttpsRedirection();
+            app.UseHttpsRedirection();
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapStaticAssets();
+            app.MapRazorPages();
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}")
