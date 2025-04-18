@@ -95,14 +95,14 @@ namespace WordSnapWeb.Models
             return await _context.SaveChangesAsync();
         }
 
-        public async Task<IEnumerable<Cardset>> GetUsersCardsetsLibraryAsync(int userId)
+        public async Task<IEnumerable<Cardset>> GetUsersCardsetsLibraryAsync(string userId)
         {
             var usersCardsetsIds = await _context.Userscardsets.Where(uc => uc.UserRef == userId).Select(uc => uc.CardsetRef).ToListAsync();
             var usersCardsetsLibrary = await _context.Cardsets.Where(c => usersCardsetsIds.Contains(c.Id)).ToListAsync();
             return usersCardsetsLibrary;
         }
 
-        public async Task<Userscardset?> GetUserscardsetAsync(int userId, int cardsetId)
+        public async Task<Userscardset?> GetUserscardsetAsync(string userId, int cardsetId)
         {
             var userscardset = await _context.Userscardsets.FirstOrDefaultAsync(uc => uc.UserRef == userId && uc.CardsetRef == cardsetId);
             return userscardset;
@@ -127,7 +127,7 @@ namespace WordSnapWeb.Models
             return await _context.SaveChangesAsync();
         }
 
-        public async Task<Progress?> GetProgress(int userId, int cardsetId)
+        public async Task<Progress?> GetProgress(string userId, int cardsetId)
         {
             var progress = await _context.Progresses.FirstOrDefaultAsync(p => p.UserRef == userId & p.CardsetRef == cardsetId);
             return progress;

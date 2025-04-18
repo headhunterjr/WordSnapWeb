@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace WordSnapWeb.Models;
 
-public partial class WordSnapDbContext : DbContext
+public partial class WordSnapDbContext : IdentityDbContext<ApplicationUser>
 {
     public WordSnapDbContext()
     {
@@ -21,12 +22,11 @@ public partial class WordSnapDbContext : DbContext
 
     public virtual DbSet<Progress> Progresses { get; set; }
 
-    public virtual DbSet<User> Users { get; set; }
-
     public virtual DbSet<Userscardset> Userscardsets { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
         modelBuilder.Entity<Card>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("cards_pkey");
@@ -97,35 +97,6 @@ public partial class WordSnapDbContext : DbContext
                 .HasConstraintName("progress_user_ref_fkey");
         });
 
-        modelBuilder.Entity<User>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("users_pkey");
-
-            entity.ToTable("users");
-
-            entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("created_at");
-            entity.Property(e => e.Email)
-                .HasMaxLength(100)
-                .HasColumnName("email");
-            entity.Property(e => e.IsVerified)
-                .HasDefaultValue(false)
-                .HasColumnName("is_verified");
-            entity.Property(e => e.PasswordHash)
-                .HasMaxLength(255)
-                .HasColumnName("password_hash");
-            entity.Property(e => e.PasswordSalt)
-                .HasMaxLength(24)
-                .IsFixedLength()
-                .HasColumnName("password_salt");
-            entity.Property(e => e.Username)
-                .HasMaxLength(50)
-                .HasColumnName("username");
-        });
-
         modelBuilder.Entity<Userscardset>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("userscardsets_pkey");
@@ -149,4 +120,17 @@ public partial class WordSnapDbContext : DbContext
     }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        if (!optionsBuilder.IsConfigured)
+        {
+            var config = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json")
+                .Build();
+
+            optionsBuilder.UseNpgsql(config.GetConnectionString("DatabaseConnection"));
+        }
+    }
+
 }

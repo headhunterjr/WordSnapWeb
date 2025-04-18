@@ -1,17 +1,14 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
-    var currentUser = WordSnapWeb.Services.UserSession.Instance.CurrentUser;
-}
-<div class="text-center">
-    @if (currentUser == null)
-    {
-        <a asp-controller="Account" asp-action="Login" class="btn btn-primary">Увійти</a>
-    }
-    else
-    {
-        <a asp-controller="Account" asp-action="Logout" class="btn btn-danger">Вийти</a>
-    }
+﻿@using System.Security.Claims
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<WordSnapWeb.Models.ApplicationUser> UserManager
+@inject SignInManager<WordSnapWeb.Models.ApplicationUser> SignInManager
 
+@{
+    ViewData["Title"] = "Home Page";
+    var isSignedIn = SignInManager.IsSignedIn(User);
+}
+
+<div class="text-center">
     <form asp-action="SearchCardset" method="get" class="mt-3">
         <div class="form-group">
             <label for="searchQuery">Пошук наборів</label>
@@ -22,14 +19,14 @@
 </div>
 
 
-@if (currentUser != null)
+@if (isSignedIn)
 {
     <h2>Створити новий набір карток</h2>
     <form asp-action="CreateCardset" method="post">
         <button type="submit" class="btn btn-success">Створити набір</button>
     </form>
     <div class="mt-3">
-        <a asp-controller="User" asp-action="SavedLibrary" asp-route-username="@currentUser.Username" class="btn btn-info">
+        <a asp-controller="User" asp-action="SavedLibrary" asp-route-username="@UserManager.GetUserName(User)" class="btn btn-info">
             Моя збережена колекція
         </a>
     </div>
