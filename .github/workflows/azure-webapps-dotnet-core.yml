@@ -53,12 +53,15 @@ jobs:
             ${{ runner.os }}-nuget-
 
       - name: Build with dotnet
+        working-directory: ./WordSnapWebApp
         run: dotnet build --configuration Release
 
       - name: Run tests with dotnet CLI
+        working-directory: ./WordSnapWebApp
         run: dotnet test
 
       - name: dotnet publish
+        working-directory: ./WordSnapWebApp
         run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
 
       - name: Upload artifact for deployment job
