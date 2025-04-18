@@ -21,7 +21,7 @@ name: Build and deploy ASP.Net Core app to an Azure Web App
 
 env:
   AZURE_WEBAPP_NAME: wordsnap    # set this to the name of your Azure Web App
-  AZURE_WEBAPP_PACKAGE_PATH: '.'      # set this to the path to your web app project, defaults to the repository root
+  AZURE_WEBAPP_PACKAGE_PATH: '${{env.DOTNET_ROOT}}/myapp'      # set this to the path to your web app project, defaults to the repository root
   DOTNET_VERSION: '9.0'                 # set this to the .NET Core version to use
 
 on:
@@ -53,16 +53,13 @@ jobs:
             ${{ runner.os }}-nuget-
 
       - name: Build with dotnet
-        working-directory: ./WordSnapWebApp
-        run: dotnet build --configuration Release
+        run: dotnet build WordSnapWeb/WordSnapWeb.sln --configuration Release
 
       - name: Run tests with dotnet CLI
-        working-directory: ./WordSnapWebApp
-        run: dotnet test
+        run: dotnet test WordSnapWeb/WordSnapWeb.sln
 
       - name: dotnet publish
-        working-directory: ./WordSnapWebApp
-        run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
+        run: dotnet publish WordSnapWeb/WordSnapWeb.sln -c Release -o ${{env.DOTNET_ROOT}}/myapp
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
