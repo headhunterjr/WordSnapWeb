@@ -21,36 +21,46 @@
                         ? lockoutEnd.Value.ToLocalTime().ToString("g")
                         : " — ")
                 </td>
-                <td class="btn-group">
-                    <form asp-action="BanUser" method="post" style="display:inline">
-                        <input type="hidden" name="userId" value="@u.Id" />
-                        <button class="btn btn-danger btn-sm">Забанити</button>
-                    </form>
+                <td>
+                    <div class="d-inline-flex align-items-center">
+                        <select name="days"
+                                class="form-select form-select-sm me-2 @(isLocked ? "invisible" : "")"
+                                style="width: auto;">
+                            <option value="1">1 день</option>
+                            <option value="3">3 дні</option>
+                            <option value="7">7 днів</option>
+                            <option value="30">30 днів</option>
+                            <option value="180">180 днів</option>
+                            <option value="365">365 днів</option>
+                        </select>
 
-                    @if (!isLocked)
-                    {
-                        <form asp-action="LockUser" method="post" style="display:inline">
+                        @if (!isLocked)
+                        {
+                            <form asp-action="LockUser" method="post" class="me-2">
+                                <input type="hidden" name="userId" value="@u.Id" />
+                                <button class="btn btn-warning btn-sm" style="min-width:100px;">
+                                    Заблокувати
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <form asp-action="UnlockUser" method="post" class="me-2">
+                                <input type="hidden" name="userId" value="@u.Id" />
+                                <button class="btn btn-success btn-sm" style="min-width:100px;">
+                                    Розблокувати
+                                </button>
+                            </form>
+                        }
+
+                        <form asp-action="BanUser" method="post">
                             <input type="hidden" name="userId" value="@u.Id" />
-                            <select name="days" class="form-select form-select-sm d-inline-block"
-                                    style="width:auto; vertical-align:middle;">
-                                <option value="1">1 день</option>
-                                <option value="3">3 дні</option>
-                                <option value="7">7 днів</option>
-                                <option value="30">30 днів</option>
-                                <option value="180">180 днів</option>
-                                <option value="365">365 днів</option>
-                            </select>
-                            <button class="btn btn-warning btn-sm">Заблокувати</button>
+                            <button class="btn btn-danger btn-sm">Видалити</button>
                         </form>
-                    }
-                    else
-                    {
-                        <form asp-action="UnlockUser" method="post" style="display:inline">
-                            <input type="hidden" name="userId" value="@u.Id" />
-                            <button class="btn btn-success btn-sm">Розблокувати</button>
-                        </form>
-                    }
+                    </div>
                 </td>
+
+
             </tr>
         }
     </tbody>

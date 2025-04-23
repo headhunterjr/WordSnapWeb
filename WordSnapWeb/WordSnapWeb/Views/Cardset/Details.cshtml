@@ -138,11 +138,10 @@ else
 @if (isAdmin)
 {
     var owner = await UserManager.FindByIdAsync(Model.UserRef);
-    <div class="alert alert-warning">
+    <div class="mt-5 p-4 border border-warning rounded bg-light">
         Власник: <strong>@owner.UserName</strong>
         <form asp-controller="Admin" asp-action="BanUser" method="post"
-              onsubmit="return confirm('Ban this user?');"
-              class="d-inline ml-2">
+              onsubmit="return confirm('Видалити користувача?');">
             <input type="hidden" name="userId" value="@owner.Id" />
             <button class="btn btn-sm btn-danger">Забанити власника</button>
         </form>
