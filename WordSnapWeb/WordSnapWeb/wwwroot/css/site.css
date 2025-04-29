@@ -67,7 +67,6 @@ a {
     padding: 0 1.5rem;
 }
 
-/* Button Styles */
 .btn-primary, .btn-secondary, .btn-create, .btn-library, .search-button, .nav-button {
     display: inline-flex;
     align-items: center;
@@ -125,9 +124,9 @@ a {
     .btn-library:hover {
         background-color: var(--primary-dark);
         transform: translateY(-2px);
+        color: white;
     }
 
-/* Header Styles */
 .site-header {
     background-color: var(--bg-white);
     box-shadow: var(--shadow-sm);
@@ -434,4 +433,13 @@ a {
 .footer-content {
     display: flex;
     flex-wrap: wrap;
+}
+
+.hover-shadow:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.transition {
+    transition: var(--transition);
 }
