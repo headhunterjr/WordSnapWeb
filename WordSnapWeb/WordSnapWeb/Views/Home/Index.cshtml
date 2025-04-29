@@ -8,26 +8,82 @@
     var isSignedIn = SignInManager.IsSignedIn(User);
 }
 
-<div class="text-center">
-    <form asp-action="SearchCardset" method="get" class="mt-3">
-        <div class="form-group">
-            <label for="searchQuery">Пошук наборів</label>
-            <input type="text" class="form-control" id="searchQuery" name="searchQuery" placeholder="Введіть назву набору" />
+<div class="hero-section">
+    <div class="hero-content">
+        <h1 class="hero-title">WordSnap</h1>
+        <p class="hero-subtitle">Запам'ятовуйте слова швидко та легко</p>
+
+        <div class="search-container">
+            <form asp-action="SearchCardset" method="get">
+                <div class="search-group">
+                    <input type="text" class="search-input" id="searchQuery" name="searchQuery" placeholder="Введіть назву набору" />
+                    <button type="submit" class="search-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                    </button>
+                </div>
+            </form>
         </div>
-        <button type="submit" class="btn btn-primary">Шукати</button>
-    </form>
+    </div>
 </div>
 
+<div class="features-section">
+    <div class="container">
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">📚</div>
+                <h3>Безліч наборів</h3>
+                <p>Тисячі готових наборів карток для навчання</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🚀</div>
+                <h3>Швидке навчання</h3>
+                <p>Запам'ятовуйте нові слова ефективно</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">✏️</div>
+                <h3>Створюйте власні</h3>
+                <p>Легко створюйте персональні набори карток</p>
+            </div>
+        </div>
+    </div>
+</div>
 
 @if (isSignedIn)
 {
-    <h2>Створити новий набір карток</h2>
-    <form asp-action="CreateCardset" method="post">
-        <button type="submit" class="btn btn-success">Створити набір</button>
-    </form>
-    <div class="mt-3">
-        <a asp-controller="User" asp-action="SavedLibrary" asp-route-username="@UserManager.GetUserName(User)" class="btn btn-info">
-            Моя збережена колекція
-        </a>
+    <div class="user-actions-section">
+        <div class="container">
+            <div class="user-actions-grid">
+                <div class="action-card create-set">
+                    <h2>Створити новий набір карток</h2>
+                    <p>Створіть свій власний набір карток для навчання</p>
+                    <form asp-action="CreateCardset" method="post">
+                        <button type="submit" class="btn-create">Створити набір</button>
+                    </form>
+                </div>
+                <div class="action-card saved-library">
+                    <h2>Моя колекція</h2>
+                    <p>Відкрийте вашу збережену бібліотеку наборів</p>
+                    <a asp-controller="User" asp-action="SavedLibrary" asp-route-username="@UserManager.GetUserName(User)" class="btn-library">
+                        Відкрити колекцію
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="cta-section">
+        <div class="container">
+            <h2>Приєднуйтесь до WordSnap сьогодні</h2>
+            <p>Створюйте, зберігайте та діліться наборами карток для навчання</p>
+            <div class="cta-buttons">
+                <a class="btn-primary" asp-area="Identity" asp-page="/Account/Register">Зареєструватись</a>
+                <a class="btn-secondary" asp-area="Identity" asp-page="/Account/Login">Увійти</a>
+            </div>
+        </div>
     </div>
 }
