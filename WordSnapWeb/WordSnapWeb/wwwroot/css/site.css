@@ -893,3 +893,66 @@ a {
     .btn-ban:hover {
         background-color: #dc2626;
     }
+
+.table-custom {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+    .table-custom th, .table-custom td {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--bg-gray);
+    }
+
+    .table-custom th {
+        background-color: var(--bg-white);
+        color: var(--text-dark);
+        text-align: left;
+    }
+
+    .table-custom tbody tr:hover {
+        background-color: var(--bg-light);
+    }
+
+.btn-sm-custom {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.875rem;
+    border-radius: var(--border-radius-sm);
+    transition: var(--transition);
+}
+
+.btn-warning-custom:hover {
+    background-color: #d97706;
+}
+
+.btn-success-custom:hover {
+    background-color: #047857;
+}
+
+.btn-danger-custom:hover {
+    background-color: #b91c1c;
+}
+
+.btn-action {
+    min-width: 120px;
+}
+
+.word-button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+}
+
+    .word-button.btn-warning, .word-button.btn-danger, .word-button.btn-success {
+        color: white;
+    }
+
+    .word-button:hover {
+        background-color: var(--primary-light);
+    }
+
+#finishTest {
+    min-width: 140px;
+}

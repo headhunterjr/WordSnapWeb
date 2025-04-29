@@ -15,7 +15,7 @@ public class AdminController : Controller
 
     public IActionResult Users()
     {
-        var all = _users.Users.ToList();
+        var all = _users.Users.OrderBy(u => u.UserName).ToList();
         return View(all);
     }
 
