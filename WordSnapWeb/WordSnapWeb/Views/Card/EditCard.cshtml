@@ -3,36 +3,60 @@
     ViewData["Title"] = "Edit Card";
 }
 
-<form asp-action="EditCard" asp-route-cardId="@Model.Id" method="post">
-    <input type="hidden" asp-for="Id" />
-    <input type="hidden" asp-for="CardsetRef" />
+<div class="container py-5">
+    <div class="card-edit-container">
+        <h1 class="page-title">Редагувати картку</h1>
 
-    <div class="form-group">
-        <label asp-for="WordUa">Слово українською</label>
-        <input asp-for="WordUa" class="form-control" />
-        <span asp-validation-for="WordUa" class="text-danger"></span>
+        <div class="card-form-wrapper">
+            <form asp-action="EditCard" asp-route-cardId="@Model.Id" method="post">
+                <input type="hidden" asp-for="Id" />
+                <input type="hidden" asp-for="CardsetRef" />
+
+                <div class="form-group mb-4">
+                    <label asp-for="WordUa" class="form-label">Слово українською</label>
+                    <input asp-for="WordUa" class="form-input" placeholder="Введіть слово українською" />
+                    <span asp-validation-for="WordUa" class="validation-error"></span>
+                </div>
+
+                <div class="form-group mb-4">
+                    <label asp-for="WordEn" class="form-label">Слово англійською</label>
+                    <input asp-for="WordEn" class="form-input" placeholder="Введіть слово англійською" />
+                    <span asp-validation-for="WordEn" class="validation-error"></span>
+                </div>
+
+                <div class="form-group mb-4">
+                    <label asp-for="Comment" class="form-label">Коментар</label>
+                    <input asp-for="Comment" class="form-input" placeholder="Додайте коментар (необов'язково)" />
+                    <span asp-validation-for="Comment" class="validation-error"></span>
+                </div>
+
+                <div class="form-actions mb-4">
+                    <button type="submit" class="btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="action-icon" viewBox="0 0 16 16">
+                            <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" />
+                        </svg>
+                        Зберегти зміни
+                    </button>
+                    <a asp-controller="Cardset" asp-action="Details" asp-route-cardsetId="@Model.CardsetRef" class="btn-secondary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="action-icon" viewBox="0 0 16 16">
+                            <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z" />
+                        </svg>
+                        Скасувати
+                    </a>
+                </div>
+            </form>
+
+            <div class="delete-container">
+                <form asp-controller="Card" asp-action="DeleteCard" asp-route-cardId="@Model.Id" method="post" onsubmit="return confirm('Ви впевнені, що хочете видалити цю картку?');">
+                    <button type="submit" class="btn-delete">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="action-icon" viewBox="0 0 16 16">
+                            <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z" />
+                            <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z" />
+                        </svg>
+                        Видалити картку
+                    </button>
+                </form>
+            </div>
+        </div>
     </div>
-
-    <div class="form-group">
-        <label asp-for="WordEn">Слово англійською</label>
-        <input asp-for="WordEn" class="form-control" />
-        <span asp-validation-for="WordEn" class="text-danger"></span>
-    </div>
-
-    <div class="form-group">
-        <label asp-for="Comment">Коментар</label>
-        <input asp-for="Comment" class="form-control" />
-        <span asp-validation-for="Comment" class="text-danger"></span>
-    </div>
-
-    <div class="mt-3">
-        <button type="submit" class="btn btn-primary">Зберегти зміни</button>
-        <a asp-controller="Cardset" asp-action="Details" asp-route-cardsetId="@Model.CardsetRef" class="btn btn-secondary">Скасувати</a>
-    </div>
-</form>
-
-<div class="mt-3 d-flex justify-content-end">
-    <form asp-controller="Card" asp-action="DeleteCard" asp-route-cardId="@Model.Id" method="post" onsubmit="return confirm('Ви впевнені, що хочете видалити цю картку?');">
-        <button type="submit" class="btn btn-danger">Видалити картку</button>
-    </form>
 </div>
