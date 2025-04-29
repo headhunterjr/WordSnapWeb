@@ -8,142 +8,228 @@
     ViewData["Title"] = "Cardset Details";
     var isSignedIn = SignInManager.IsSignedIn(User);
     var isAdmin = User.IsInRole("Admin");
+    var isOwner = UserManager.GetUserId(User) == Model.UserRef;
+    var canEdit = isOwner || isAdmin;
 }
 
-<h1>@Model.Name</h1>
+<div class="container py-5">
+    <div class="cardset-container">
+        <div class="cardset-header">
+            <h1 class="cardset-title">@Model.Name</h1>
 
-@if (UserManager.GetUserId(User) == Model.UserRef || isAdmin)
-{
-    <h2>Редагувати інформацію набору</h2>
-    <form asp-action="EditCardset" method="post">
-        <input type="hidden" asp-for="Id" />
-
-        <div class="form-group">
-            <label asp-for="Name">Назва набору</label>
-            <input asp-for="Name" class="form-control" />
-            <span asp-validation-for="Name" class="text-danger"></span>
+            @if (isSignedIn)
+            {
+                <a asp-controller="Cardset" asp-action="TakeTest" asp-route-cardsetId="@Model.Id" class="btn-take-test">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="action-icon" viewBox="0 0 16 16">
+                        <path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z" />
+                        <path d="M10.97 4.97a.75.75 0 0 1 1.071 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.235.235 0 0 1 .02-.022z" />
+                    </svg>
+                    Пройти тест
+                </a>
+            }
         </div>
 
-        <div class="form-group">
-            <label>Публічний доступ</label>
-            <div>
-                <label class="mr-3">
-                    <input type="radio" name="IsPublic" value="true" @(Model.IsPublic == true ? "checked" : "") /> Так
-                </label>
-                <label>
-                    <input type="radio" name="IsPublic" value="false" @(Model.IsPublic == false ? "checked" : "") /> Ні
-                </label>
-            </div>
-        </div>
-
-        <button type="submit" class="btn btn-primary">Зберегти зміни</button>
-    </form>
-
-    <div class="my-3">
-        @if (ViewBag.IsSaved == true)
+        @if (canEdit)
         {
-            <form asp-action="RemoveFromLibrary" asp-route-cardsetId="@Model.Id" method="post">
-                <button type="submit" class="btn btn-warning">Видалити зі збережених</button>
-            </form>
+            <div class="cardset-edit-panel">
+                <h2 class="section-title">Редагувати інформацію набору</h2>
+                <form asp-action="EditCardset" method="post" class="cardset-form">
+                    <input type="hidden" asp-for="Id" />
+
+                    <div class="form-group mb-4">
+                        <label asp-for="Name" class="form-label">Назва набору</label>
+                        <input asp-for="Name" class="form-input" />
+                        <span asp-validation-for="Name" class="validation-error"></span>
+                    </div>
+
+                    <div class="form-group mb-4">
+                        <label class="form-label">Публічний доступ</label>
+                        <div class="radio-group">
+                            <label class="radio-label">
+                                <input type="radio" name="IsPublic" value="true" @(Model.IsPublic == true ? "checked" : "") />
+                                <span>Так</span>
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="IsPublic" value="false" @(Model.IsPublic == false ? "checked" : "") />
+                                <span>Ні</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="action-icon" viewBox="0 0 16 16">
+                                <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" />
+                            </svg>
+                            Зберегти зміни
+                        </button>
+                    </div>
+                </form>
+
+                <div class="save-library-actions">
+                    @if (ViewBag.IsSaved == true)
+                    {
+                        <form asp-action="RemoveFromLibrary" asp-route-cardsetId="@Model.Id" method="post">
+                            <button type="submit" class="btn-library-remove">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="action-icon" viewBox="0 0 16 16">
+                                    <path d="M8.864 15.674c-.956.24-1.843-.484-1.908-1.42-.072-1.05-.23-2.015-.428-2.59-.125-.36-.479-1.012-1.04-1.638-.557-.624-1.282-1.179-2.131-1.41C2.685 8.432 2 7.85 2 7V3c0-.845.682-1.464 1.448-1.546 1.07-.113 1.564-.415 2.068-.723l.048-.029c.272-.166.578-.349.97-.484C6.931.08 7.395 0 8 0h3.5c.937 0 1.599.478 1.934 1.064.164.287.254.607.254.913 0 .152-.023.312-.077.464.201.262.38.577.488.9.11.33.172.762.004 1.15.069.13.12.268.159.403.077.27.113.567.113.856 0 .289-.036.586-.113.856-.035.12-.08.244-.138.363.394.571.418 1.2.234 1.733-.206.592-.682 1.1-1.2 1.272-.847.283-1.803.276-2.516.211a9.877 9.877 0 0 1-.443-.05 9.364 9.364 0 0 1-.062 4.51c-.138.508-.55.848-1.012.964l-.261.065zM11.5 1H8c-.51 0-.863.068-1.14.163-.281.097-.506.229-.776.393l-.04.025c-.555.338-1.198.73-2.49.868-.333.035-.554.29-.554.55V7c0 .255.226.543.62.65 1.095.3 1.977.997 2.614 1.709.635.71 1.064 1.475 1.238 1.977.243.7.407 1.768.482 2.85.025.362.36.595.667.518l.262-.065c.16-.04.258-.144.288-.255a8.34 8.34 0 0 0-.145-4.726.5.5 0 0 1 .595-.643h.003l.014.004.058.013a8.912 8.912 0 0 0 1.036.157c.663.06 1.457.054 2.11-.163.175-.059.45-.301.57-.651.107-.308.087-.67-.266-1.021L12.793 7l.353-.354c.043-.042.105-.14.154-.315.048-.167.075-.37.075-.581 0-.211-.027-.414-.075-.581-.05-.174-.111-.273-.154-.315l-.353-.354.353-.354c.047-.047.109-.176.005-.488a2.224 2.224 0 0 0-.505-.804l-.353-.354.353-.354c.006-.005.041-.05.041-.17a.866.866 0 0 0-.121-.415C12.4 1.272 12.063 1 11.5 1z" />
+                                </svg>
+                                Видалити зі збережених
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <form asp-action="AddToLibrary" asp-route-cardsetId="@Model.Id" method="post">
+                            <button type="submit" class="btn-library-add">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="action-icon" viewBox="0 0 16 16">
+                                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
+                                    <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
+                                </svg>
+                                Додати до збережених
+                            </button>
+                        </form>
+                    }
+                </div>
+
+                <div class="delete-container">
+                    <form asp-action="DeleteCardset" method="post" onsubmit="return confirm('Ви впевнені, що хочете видалити цей набір?');">
+                        <input type="hidden" name="cardsetId" value="@Model.Id" />
+                        <button type="submit" class="btn-delete">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="action-icon" viewBox="0 0 16 16">
+                                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z" />
+                                <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z" />
+                            </svg>
+                            Видалити набір
+                        </button>
+                    </form>
+                </div>
+            </div>
         }
         else
         {
-            <form asp-action="AddToLibrary" asp-route-cardsetId="@Model.Id" method="post">
-                <button type="submit" class="btn btn-success">Додати до збережених</button>
-            </form>
+            <p class="info-message"><em>Редагування недоступне. Ви не є власником цього набору або не увійшли в систему.</em></p>
+        }
+
+        <div class="section-divider"></div>
+
+        <h2 class="section-title">Картки</h2>
+
+        @if (Model.Cards != null && Model.Cards.Any())
+        {
+            <div class="cards-control">
+                <button id="prev-card" class="card-nav-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z" />
+                    </svg>
+                </button>
+
+                <div class="cards-container">
+                    @foreach (var card in Model.Cards)
+                    {
+                        <div class="flip-card" data-card-id="@card.Id">
+                            <div class="flip-card-inner">
+                                <div class="flip-card-front">
+                                    <div class="card-content">
+                                        <div class="card-word">@card.WordEn</div>
+                                        <div class="card-flip-hint">Натисніть, щоб перевернути</div>
+                                    </div>
+                                    @if (canEdit)
+                                    {
+                                        <a asp-controller="Card" asp-action="EditCard" asp-route-cardId="@card.Id" class="card-edit-btn">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                                <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z" />
+                                            </svg>
+                                        </a>
+                                    }
+                                </div>
+                                <div class="flip-card-back">
+                                    <div class="card-content">
+                                        <div class="card-word">@card.WordUa</div>
+                                        @if (!string.IsNullOrEmpty(card.Comment))
+                                        {
+                                            <div class="card-comment">@card.Comment</div>
+                                        }
+                                        <div class="card-flip-hint">Натисніть, щоб перевернути</div>
+                                    </div>
+                                    @if (canEdit)
+                                    {
+                                        <a asp-controller="Card" asp-action="EditCard" asp-route-cardId="@card.Id" class="card-edit-btn">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                                <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z" />
+                                            </svg>
+                                        </a>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <button id="next-card" class="card-nav-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="card-indicator">
+                <span id="current-card">1</span> / <span id="total-cards">@Model.Cards.Count()</span>
+            </div>
+        }
+        else
+        {
+            <p class="empty-set-message">Ще немає карток.</p>
+        }
+
+        <div class="section-divider"></div>
+
+        @if (canEdit)
+        {
+            <div class="add-card-container">
+                <h2 class="section-title">Додати нову картку</h2>
+                <form asp-action="CreateCard" asp-route-cardsetId="@Model.Id" method="post" class="add-card-form">
+                    <div class="form-group mb-4">
+                        <label for="WordUa" class="form-label">Слово українською</label>
+                        <input type="text" class="form-input" id="WordUa" name="WordUa" placeholder="Введіть слово українською" />
+                    </div>
+                    <div class="form-group mb-4">
+                        <label for="WordEn" class="form-label">Слово англійською</label>
+                        <input type="text" class="form-input" id="WordEn" name="WordEn" placeholder="Введіть слово англійською" />
+                    </div>
+                    <div class="form-group mb-4">
+                        <label for="Comment" class="form-label">Коментар</label>
+                        <input type="text" class="form-input" id="Comment" name="Comment" placeholder="Введіть опис слова" />
+                    </div>
+                    <button type="submit" class="btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="action-icon" viewBox="0 0 16 16">
+                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
+                            <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
+                        </svg>
+                        Додати картку
+                    </button>
+                </form>
+            </div>
+        }
+
+        @if (isAdmin)
+        {
+            var owner = await UserManager.FindByIdAsync(Model.UserRef);
+            <div class="admin-panel">
+                <p>Власник: <strong>@owner.UserName</strong></p>
+                <form asp-controller="Admin" asp-action="BanUser" method="post"
+                      onsubmit="return confirm('Видалити користувача?');">
+                    <input type="hidden" name="userId" value="@owner.Id" />
+                    <button class="btn-ban">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="action-icon" viewBox="0 0 16 16">
+                            <path d="M13.879 10.414a2.501 2.501 0 0 0-3.465 3.465l3.465-3.465Zm.707.707-3.465 3.465a2.501 2.501 0 0 0 3.465-3.465Zm-4.56-1.096a3.5 3.5 0 1 1 4.949 4.95 3.5 3.5 0 0 1-4.95-4.95ZM11 5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm-9 8c0 1 1 1 1 1h5.256A4.493 4.493 0 0 1 8 12.5a4.49 4.49 0 0 1 1.544-3.393C9.077 9.038 8.564 9 8 9c-5 0-6 3-6 4Z" />
+                        </svg>
+                        Забанити власника
+                    </button>
+                </form>
+            </div>
         }
     </div>
+</div>
 
-    <div class="d-flex justify-content-end mt-3">
-        <form asp-action="DeleteCardset" method="post" onsubmit="return confirm('Ви впевнені, що хочете видалити цей набір?');">
-            <input type="hidden" name="cardsetId" value="@Model.Id" />
-            <button type="submit" class="btn btn-danger">Видалити набір</button>
-        </form>
-    </div>
-}
-else
-{
-    <p><em>Редагування недоступне. Ви не є власником цього набору або не увійшли в систему.</em></p>
-}
-
-@if (isSignedIn)
-{
-    <a asp-controller="Cardset" asp-action="TakeTest" asp-route-cardsetId="@Model.Id" class="btn btn-primary">
-        <i class="bi bi-check-square"></i> Пройти тест
-    </a>
-}
-
-<hr class="my-4" />
-
-<h2>Картки</h2>
-@if (Model.Cards != null && Model.Cards.Any())
-{
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Слово українською</th>
-                <th>Слово англійською</th>
-                <th>Коментар</th>
-                @if (UserManager.GetUserId(User) == Model.UserRef || isAdmin)
-                {
-                    <th>Дії</th>
-                }
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var card in Model.Cards)
-            {
-                <tr>
-                    <td>@card.WordUa</td>
-                    <td>@card.WordEn</td>
-                    <td>@(string.IsNullOrEmpty(card.Comment) ? "-" : card.Comment)</td>
-                    @if (UserManager.GetUserId(User) == Model.UserRef || isAdmin)
-                    {
-                        <td>
-                            <a asp-controller="Card" asp-action="EditCard" asp-route-cardId="@card.Id" class="btn btn-sm btn-outline-primary">Редагувати</a>
-                        </td>
-                    }
-                </tr>
-            }
-        </tbody>
-    </table>
-}
-else
-{
-    <p>No cards added yet.</p>
-}
-
-<hr class="my-4" />
-
-@if (UserManager.GetUserId(User) == Model.UserRef || isAdmin)
-{
-    <h2>Додати нову картку</h2>
-    <form asp-action="CreateCard" asp-route-cardsetId="@Model.Id" method="post">
-        <div class="form-group">
-            <label for="WordUa">Слово українською</label>
-            <input type="text" class="form-control" id="WordUa" name="WordUa" placeholder="Введіть слово українською" />
-        </div>
-        <div class="form-group">
-            <label for="WordEn">Слово англійською</label>
-            <input type="text" class="form-control" id="WordEn" name="WordEn" placeholder="Введіть слово англійською" />
-        </div>
-        <div class="form-group">
-            <label for="Comment">Коментар</label>
-            <input type="text" class="form-control" id="Comment" name="Comment" placeholder="Введіть опис слова" />
-        </div>
-        <button type="submit" class="btn btn-primary">Додати картку</button>
-    </form>
-}
-
-@if (isAdmin)
-{
-    var owner = await UserManager.FindByIdAsync(Model.UserRef);
-    <div class="mt-5 p-4 border border-warning rounded bg-light">
-        Власник: <strong>@owner.UserName</strong>
-        <form asp-controller="Admin" asp-action="BanUser" method="post"
-              onsubmit="return confirm('Видалити користувача?');">
-            <input type="hidden" name="userId" value="@owner.Id" />
-            <button class="btn btn-sm btn-danger">Забанити власника</button>
-        </form>
-    </div>
-}
+<script src="~/js/cardset-details.js"></script>

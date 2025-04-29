@@ -1,67 +1,66 @@
 ﻿@model List<WordSnapWeb.Models.ApplicationUser>
 @using Microsoft.AspNetCore.Identity
-
 @inject UserManager<ApplicationUser> UserManager
-
-<h2>Всі користувачі</h2>
-<table class="table">
-    <thead>
-        <tr><th>Ім'я користувача</th><th>Пошта</th><th>Заблокований до</th><th>Дії</th></tr>
-    </thead>
-    <tbody>
+@{
+  ViewData["Title"] = "Всі користувачі";
+  Layout = "_Layout";
+}
+<main class="py-5 flex-grow-1">
+  <div class="container">
+    <h1 class="mb-4 text-center">Всі користувачі</h1>
+    <table class="table-custom bg-white rounded shadow-sm">
+      <thead>
+        <tr>
+          <th>Ім'я користувача</th>
+          <th>Пошта</th>
+          <th>Заблокований до</th>
+          <th>Дії</th>
+        </tr>
+      </thead>
+      <tbody>
         @foreach (var u in Model)
         {
-            var lockoutEnd = await UserManager.GetLockoutEndDateAsync(u);
-            bool isLocked = lockoutEnd.HasValue && lockoutEnd > DateTimeOffset.UtcNow;
-            <tr>
-                <td>@u.UserName</td>
-                <td>@u.Email</td>
-                <td>
-                    @(isLocked
-                        ? lockoutEnd.Value.ToLocalTime().ToString("g")
-                        : " — ")
-                </td>
-                <td>
-                    <div class="d-inline-flex align-items-center">
-                        <select name="days"
-                                class="form-select form-select-sm me-2 @(isLocked ? "invisible" : "")"
-                                style="width: auto;">
-                            <option value="1">1 день</option>
-                            <option value="3">3 дні</option>
-                            <option value="7">7 днів</option>
-                            <option value="30">30 днів</option>
-                            <option value="180">180 днів</option>
-                            <option value="365">365 днів</option>
-                        </select>
+          var lockoutEnd = await UserManager.GetLockoutEndDateAsync(u);
+          bool isLocked = lockoutEnd.HasValue && lockoutEnd > DateTimeOffset.UtcNow;
+          <tr>
+            <td>@u.UserName</td>
+            <td>@u.Email</td>
+            <td>@(isLocked ? lockoutEnd.Value.ToLocalTime().ToString("g") : "—")</td>
+            <td>
+              <div class="d-inline-flex align-items-center gap-2">
+                <select name="days" class="form-select form-select-sm me-2 @(isLocked ? "invisible" : "")" style="width:auto;">
+                  <option>1 день</option>
+                  <option>3 дні</option>
+                  <option>7 днів</option>
+                  <option>30 днів</option>
+                  <option>180 днів</option>
+                  <option>365 днів</option>
+                </select>
 
-                        @if (!isLocked)
-                        {
-                            <form asp-action="LockUser" method="post" class="me-2">
-                                <input type="hidden" name="userId" value="@u.Id" />
-                                <button class="btn btn-warning btn-sm" style="min-width:100px;">
-                                    Заблокувати
-                                </button>
-                            </form>
-                        }
-                        else
-                        {
-                            <form asp-action="UnlockUser" method="post" class="me-2">
-                                <input type="hidden" name="userId" value="@u.Id" />
-                                <button class="btn btn-success btn-sm" style="min-width:100px;">
-                                    Розблокувати
-                                </button>
-                            </form>
-                        }
+                @if (!isLocked)
+                {
+                  <form asp-action="LockUser" method="post" class="me-2">
+                    <input type="hidden" name="userId" value="@u.Id" />
+                    <button class="btn btn-warning btn-sm btn-sm-custom btn-action">Заблокувати</button>
+                  </form>
+                }
+                else
+                {
+                  <form asp-action="UnlockUser" method="post" class="me-2">
+                    <input type="hidden" name="userId" value="@u.Id" />
+                    <button class="btn btn-success btn-sm btn-sm-custom btn-action">Розблокувати</button>
+                  </form>
+                }
 
-                        <form asp-action="BanUser" method="post">
-                            <input type="hidden" name="userId" value="@u.Id" />
-                            <button class="btn btn-danger btn-sm">Видалити</button>
-                        </form>
-                    </div>
-                </td>
-
-
-            </tr>
+                <form asp-action="BanUser" method="post">
+                  <input type="hidden" name="userId" value="@u.Id" />
+                  <button class="btn btn-danger btn-sm btn-sm-custom">Видалити</button>
+                </form>
+              </div>
+            </td>
+          </tr>
         }
-    </tbody>
-</table>
+      </tbody>
+    </table>
+  </div>
+</main>

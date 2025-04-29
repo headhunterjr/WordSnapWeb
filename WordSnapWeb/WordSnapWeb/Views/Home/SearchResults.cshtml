@@ -1,25 +1,30 @@
 ﻿@model IEnumerable<WordSnapWeb.Models.Cardset>
-
 @{
     ViewData["Title"] = "Результати пошуку";
+    Layout = "_Layout";
 }
+<main class="py-5 flex-grow-1">
+    <div class="container">
+        <h1 class="mb-4 text-center">Результати пошуку</h1>
 
-<h1>Результати пошуку</h1>
-
-@if (Model != null && Model.Any())
-{
-    <ul>
-        @foreach (var cardset in Model)
+        @if (Model != null && Model.Any())
         {
-            <li>
-                <a asp-controller="Cardset" asp-action="Details" asp-route-cardsetId="@cardset.Id">
-                    @cardset.Name
-                </a>
-            </li>
+            <div class="row g-3">
+                @foreach (var cardset in Model)
+                {
+                    <div class="col-md-6 col-lg-4">
+                        <a asp-controller="Cardset" asp-action="Details" asp-route-cardsetId="@cardset.Id" class="text-decoration-none">
+                            <div class="bg-white rounded shadow-sm p-4 h-100 transition hover-shadow">
+                                <h5 class="mb-0 text-primary">@cardset.Name</h5>
+                            </div>
+                        </a>
+                    </div>
+                }
+            </div>
         }
-    </ul>
-}
-else
-{
-    <p>Нічого не знайдено.</p>
-}
+        else
+        {
+            <div class="text-center text-muted">Нічого не знайдено.</div>
+        }
+    </div>
+</main>
