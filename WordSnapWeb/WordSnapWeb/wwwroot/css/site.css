@@ -344,11 +344,13 @@ a {
 }
 
 .feature-card h3 {
+    user-select: none;
     font-size: 1.25rem;
     margin-bottom: 0.75rem;
 }
 
 .feature-card p {
+    user-select: none;
     color: var(--text-light);
 }
 
