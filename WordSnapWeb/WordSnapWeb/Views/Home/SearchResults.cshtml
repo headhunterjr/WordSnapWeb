@@ -2,6 +2,9 @@
 @{
     ViewData["Title"] = "Результати пошуку";
     Layout = "_Layout";
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
+    string searchQuery = ViewBag.SearchQuery;
 }
 <main class="py-5 flex-grow-1">
     <div class="container">
@@ -13,7 +16,10 @@
                 @foreach (var cardset in Model)
                 {
                     <div class="col-md-6 col-lg-4">
-                        <a asp-controller="Cardset" asp-action="Details" asp-route-cardsetId="@cardset.Id" class="text-decoration-none">
+                        <a asp-controller="Cardset"
+                           asp-action="Details"
+                           asp-route-cardsetId="@cardset.Id"
+                           class="text-decoration-none">
                             <div class="bg-white rounded shadow-sm p-4 h-100 transition hover-shadow">
                                 <h5 class="mb-0 text-primary">@cardset.Name</h5>
                             </div>
@@ -21,6 +27,26 @@
                     </div>
                 }
             </div>
+
+            @if (totalPages > 1)
+            {
+                <nav aria-label="Пагінація">
+                    <ul class="pagination justify-content-center mt-4">
+                        @for (int i = 1; i <= totalPages; i++)
+                        {
+                            <li class="page-item @(i == currentPage ? "active" : "")">
+                                <a class="page-link"
+                                   asp-controller="Home"
+                                   asp-action="SearchCardset"
+                                   asp-route-searchQuery="@searchQuery"
+                                   asp-route-page="@i">
+                                    @i
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </nav>
+            }
         }
         else
         {

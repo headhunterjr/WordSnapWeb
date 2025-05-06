@@ -30,10 +30,21 @@ public class HomeController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> SearchCardset(string searchQuery)
+    public async Task<IActionResult> SearchCardset(string searchQuery, int page = 1, int pageSize = 9)
     {
-        var cardsets = await _repository.GetCardsetsFromSearchAsync(searchQuery);
-        return View("SearchResults", cardsets);
+        var allCardsets = await _repository.GetCardsetsFromSearchAsync(searchQuery);
+
+        var totalItems = allCardsets.Count();
+        var pagedCardsets = allCardsets
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+
+        ViewBag.CurrentPage = page;
+        ViewBag.TotalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+        ViewBag.SearchQuery = searchQuery;
+
+        return View("SearchResults", pagedCardsets);
     }
 
 
